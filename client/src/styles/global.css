@@ -1,0 +1,83 @@
+/* ── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Space Mono', monospace;
+  background: #0e0b08;
+  color: #f3e9d6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+#root { min-height: 100vh; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .3; transform: scale(.78); }
+}
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── DESIGN TOKENS ──────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --c-bg-deepest:   #0e0b08;
+  --c-bg-inset:     #120e0a;
+  --c-bg-sunken:    #15110c;
+  --c-bg-card:      #1b1611;
+  --c-bg-raised:    #221a14;
+  --c-border-hair:  #2c2319;
+  --c-border:       #3a2e22;
+  --c-divider:      #241c14;
+
+  /* Text */
+  --c-text-primary:   #f3e9d6;
+  --c-text-secondary: #a4927a;
+  --c-text-muted:     #8c7c68;
+  --c-text-dim:       #6b6155;
+  --c-text-disabled:  #5f5547;
+
+  /* Accent / brand */
+  --c-gold:        #e2a93b;
+  --c-gold-edge:   #a87a1f;
+  --c-gold-hi:     #f7df9a;
+
+  /* Team Rust */
+  --c-rust:        #d65a37;
+  --c-rust-edge:   #a8421f;
+  --c-rust-light:  #f0a58a;
+  --c-rust-sunken: #5f2415;
+  --c-rust-deep:   #3d150b;
+
+  /* Team Teal */
+  --c-teal:        #2f9c8f;
+  --c-teal-edge:   #21766b;
+  --c-teal-light:  #7fcabf;
+  --c-teal-sunken: #143f39;
+  --c-teal-deep:   #0c2723;
+
+  /* Neutral card */
+  --c-neutral-fill: #c8b489;
+  --c-neutral-edge: #a08a5e;
+
+  /* Avoid card */
+  --c-avoid-fill: #2b2622;
+  --c-avoid-edge: #141210;
+  --c-avoid-ring: #4a443d;
+}
+
+/* ── UTILITIES ─────────────────────────────────────────── */
+.font-pixel   { font-family: 'Press Start 2P', monospace; }
+.font-mono    { font-family: 'Space Mono', monospace; }
+.pulse-dot    { animation: pulseDot 1.4s ease-in-out infinite; }
+.caret-blink  { animation: caretBlink 1.1s step-end infinite; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--c-bg-deepest); }
+::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 3px; }
