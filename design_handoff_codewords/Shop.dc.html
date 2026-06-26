@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+</style>
+</helmet>
+
+<!-- ============ SHOP — DESKTOP ============ -->
+<div style="position:absolute; left:0px; top:0px; width:1000px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Shop — Desktop</div>
+  <div data-screen-label="Shop Desktop" style="width:1000px; background:#1b1611; border-radius:14px; border:2px solid #3a2e22; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:30px 36px 36px; font-family:'Space Mono',monospace;">
+
+    <!-- header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid #2c2319;">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; border:2px solid #3a2e22; padding:11px 14px; border-radius:4px; cursor:pointer;">← BACK</div>
+        <div style="display:flex; align-items:baseline; gap:9px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#e2a93b; text-shadow:0 3px 0 rgba(0,0,0,.4);">SHOP</span>
+        </div>
+      </div>
+      <!-- coin balance -->
+      <div style="display:flex; align-items:center; gap:12px; background:#221a14; border:2px solid #3a2e22; border-radius:999px; padding:9px 18px 9px 12px;">
+        <span style="position:relative; display:inline-block; width:24px; height:24px;"><span style="position:absolute; top:0; left:0; width:4px; height:4px; background:transparent; box-shadow:8px 0 0 #a87a1f,12px 0 0 #a87a1f,16px 0 0 #a87a1f,4px 4px 0 #a87a1f,8px 4px 0 #e2a93b,12px 4px 0 #e2a93b,16px 4px 0 #e2a93b,20px 4px 0 #a87a1f,0 8px 0 #a87a1f,4px 8px 0 #e2a93b,8px 8px 0 #f7df9a,12px 8px 0 #e2a93b,16px 8px 0 #e2a93b,20px 8px 0 #e2a93b,24px 8px 0 #a87a1f,0 12px 0 #a87a1f,4px 12px 0 #e2a93b,8px 12px 0 #f7df9a,12px 12px 0 #e2a93b,16px 12px 0 #e2a93b,20px 12px 0 #e2a93b,24px 12px 0 #a87a1f,0 16px 0 #a87a1f,4px 16px 0 #e2a93b,8px 16px 0 #f7df9a,12px 16px 0 #e2a93b,16px 16px 0 #e2a93b,20px 16px 0 #e2a93b,24px 16px 0 #a87a1f,4px 20px 0 #a87a1f,8px 20px 0 #e2a93b,12px 20px 0 #e2a93b,16px 20px 0 #e2a93b,20px 20px 0 #a87a1f,8px 24px 0 #a87a1f,12px 24px 0 #a87a1f,16px 24px 0 #a87a1f;"></span></span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:14px; color:#e2a93b;">1,240</span>
+      </div>
+    </div>
+
+    <!-- title row -->
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-top:24px;">
+      <div>
+        <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:20px; color:#f3e9d6; line-height:1.4;">Avatars</h1>
+        <p style="margin:11px 0 0; font-size:13px; color:#a4927a;">Spend the coins you earn from playing on new profile looks.</p>
+      </div>
+      <div style="display:flex; gap:9px;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#1b1611; background:#e2a93b; padding:11px 13px; border-radius:6px; cursor:pointer;">ALL</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; padding:9px 13px; border-radius:6px; cursor:pointer;">OWNED</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; padding:9px 13px; border-radius:6px; cursor:pointer;">LOCKED</span>
+      </div>
+    </div>
+
+    <!-- grid -->
+    <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-top:24px;">
+      <sc-for list="{{ items }}" as="it" hint-placeholder-count="15">
+        <div style="{{ it.cardStyle }}">
+          <div style="{{ it.thumbStyle }}">
+            <span style="font-family:'Space Mono',monospace; font-size:10px; color:#6b6155;">PFP</span>
+            <sc-if value="{{ it.equipped }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:7px; left:7px; font-family:'Press Start 2P',monospace; font-size:6px; color:#1b1611; background:#2f9c8f; padding:4px 6px; border-radius:4px;">EQUIPPED</span></sc-if>
+            <sc-if value="{{ it.locked }}" hint-placeholder-val="{{ true }}"><span style="{{ it.lockBadgeStyle }}"><span style="display:block; width:8px; height:6px; border:2px solid #a4927a; border-bottom:0; border-radius:4px 4px 0 0; margin-bottom:-1px;"></span><span style="display:block; width:13px; height:9px; background:#a4927a; border-radius:2px;"></span></span></sc-if>
+          </div>
+          <div style="padding:11px 12px 13px;">
+            <div style="font-size:13px; color:#f3e9d6; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ it.name }}</div>
+            <div style="{{ it.priceRowStyle }}">{{ it.priceLabel }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHOP — MOBILE ============ -->
+<div style="position:absolute; left:1100px; top:0px; width:412px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Shop — Mobile</div>
+  <div data-screen-label="Shop Mobile" style="width:412px; background:#0e0b08; border-radius:42px; border:3px solid #2c2319; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:11px; font-family:'Space Mono',monospace;">
+    <div style="background:#1b1611; border-radius:32px; overflow:hidden; border:1px solid #3a2e22;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 22px 0; font-size:11px; color:#8c7c68;">
+        <span style="font-weight:700;">9:41</span>
+        <span style="width:46px; height:5px; border-radius:3px; background:#2c2319;"></span>
+        <span style="font-weight:700; letter-spacing:1px;">▮▮▮</span>
+      </div>
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:2px solid #2c2319;">
+        <div style="display:flex; align-items:center; gap:11px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6; border:2px solid #3a2e22; padding:9px 11px; border-radius:5px;">←</span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:14px; color:#e2a93b;">SHOP</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:9px; background:#221a14; border:2px solid #3a2e22; border-radius:999px; padding:7px 14px 7px 9px;">
+          <span style="position:relative; display:inline-block; width:18px; height:18px;"><span style="position:absolute; top:0; left:0; width:3px; height:3px; background:transparent; box-shadow:6px 0 0 #a87a1f,9px 0 0 #a87a1f,12px 0 0 #a87a1f,3px 3px 0 #a87a1f,6px 3px 0 #e2a93b,9px 3px 0 #e2a93b,12px 3px 0 #e2a93b,15px 3px 0 #a87a1f,0 6px 0 #a87a1f,3px 6px 0 #e2a93b,6px 6px 0 #f7df9a,9px 6px 0 #e2a93b,12px 6px 0 #e2a93b,15px 6px 0 #e2a93b,18px 6px 0 #a87a1f,0 9px 0 #a87a1f,3px 9px 0 #e2a93b,6px 9px 0 #f7df9a,9px 9px 0 #e2a93b,12px 9px 0 #e2a93b,15px 9px 0 #e2a93b,18px 9px 0 #a87a1f,0 12px 0 #a87a1f,3px 12px 0 #e2a93b,6px 12px 0 #f7df9a,9px 12px 0 #e2a93b,12px 12px 0 #e2a93b,15px 12px 0 #e2a93b,18px 12px 0 #a87a1f,3px 15px 0 #a87a1f,6px 15px 0 #e2a93b,9px 15px 0 #e2a93b,12px 15px 0 #e2a93b,15px 15px 0 #a87a1f;"></span></span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#e2a93b;">1,240</span>
+        </div>
+      </div>
+
+      <div style="padding:20px 20px 26px;">
+        <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:15px; color:#f3e9d6;">Avatars</h1>
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#1b1611; background:#e2a93b; padding:10px 13px; border-radius:6px;">ALL</span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; padding:8px 13px; border-radius:6px;">OWNED</span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; padding:8px 13px; border-radius:6px;">LOCKED</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-top:18px;">
+          <sc-for list="{{ items }}" as="it" hint-placeholder-count="9">
+            <div style="{{ it.cardStyleM }}">
+              <div style="{{ it.thumbStyleM }}">
+                <span style="font-family:'Space Mono',monospace; font-size:9px; color:#6b6155;">PFP</span>
+                <sc-if value="{{ it.equipped }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:5px; left:5px; font-family:'Press Start 2P',monospace; font-size:5px; color:#1b1611; background:#2f9c8f; padding:3px 4px; border-radius:3px;">ON</span></sc-if>
+                <sc-if value="{{ it.locked }}" hint-placeholder-val="{{ true }}"><span style="{{ it.lockBadgeStyleM }}"><span style="display:block; width:7px; height:5px; border:2px solid #a4927a; border-bottom:0; border-radius:3px 3px 0 0; margin-bottom:-1px;"></span><span style="display:block; width:11px; height:8px; background:#a4927a; border-radius:2px;"></span></span></sc-if>
+              </div>
+              <div style="padding:8px 9px 10px;">
+                <div style="font-size:11px; color:#f3e9d6; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ it.name }}</div>
+                <div style="{{ it.priceRowStyleM }}">{{ it.priceLabel }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  buildItems() {
+    // state: 'equipped' | 'owned' | price number (locked)
+    const data = [
+      ['AGENT 01','equipped'], ['ROOKIE','owned'], ['SCOUT',120], ['RANGER',120], ['NOMAD',250],
+      ['CIPHER',250], ['SPECTER',400], ['ORACLE',400], ['PHANTOM',600], ['WARDEN',600],
+      ['VIPER',900], ['ZENITH',900], ['ECHO',1500], ['TITAN',1500], ['LEGEND',3000]
+    ];
+    return data.map(([name, st]) => {
+      const locked = typeof st === 'number';
+      const equipped = st === 'equipped';
+      const owned = st === 'owned';
+      const card = { background:'#15110c', border:'2px solid #3a2e22', borderRadius:'12px', overflow:'hidden', cursor:'pointer', display:'flex', flexDirection:'column' };
+      const cardM = { ...card, borderRadius:'11px' };
+      if (equipped) { card.border = '2px solid #2f9c8f'; cardM.border = '2px solid #2f9c8f'; }
+      const thumbBase = { position:'relative', aspectRatio:'1 / 1', display:'flex', alignItems:'center', justifyContent:'center',
+        background:'repeating-linear-gradient(45deg,#241c14 0 7px,#1f1810 7px 14px)', borderBottom:'2px solid #2c2319' };
+      const thumb = { ...thumbBase, filter: locked ? 'grayscale(1) brightness(.7)' : 'none' };
+      const thumbM = { ...thumb };
+
+      const lockBadge = { position:'absolute', top:'7px', right:'7px', width:'24px', height:'24px', borderRadius:'6px',
+        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+        background:'rgba(12,9,7,.82)', border:'1px solid #3a2e22' };
+      const lockBadgeM = { ...lockBadge, width:'19px', height:'19px', top:'5px', right:'5px' };
+
+      // price / status row
+      let priceLabel, priceColor;
+      if (equipped) { priceLabel = 'Equipped'; priceColor = '#2f9c8f'; }
+      else if (owned) { priceLabel = 'Tap to equip'; priceColor = '#8c7c68'; }
+      else { priceLabel = '◉ ' + st.toLocaleString(); priceColor = '#e2a93b'; }
+      const priceRow = { marginTop:'8px', fontFamily:'"Press Start 2P", monospace', fontSize:'9px', color:priceColor, letterSpacing:'.5px' };
+      const priceRowM = { ...priceRow, fontSize:'8px', marginTop:'7px' };
+
+      return { name, locked, equipped, owned,
+        cardStyle:card, cardStyleM:cardM, thumbStyle:thumb, thumbStyleM:thumbM,
+        lockBadgeStyle:lockBadge, lockBadgeStyleM:lockBadgeM,
+        priceLabel, priceRowStyle:priceRow, priceRowStyleM:priceRowM };
+    });
+  }
+  renderVals() { return { items: this.buildItems() }; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+</style>
+</helmet>
+
+<!-- ============ PROFILE / AVATAR PICKER — DESKTOP ============ -->
+<div style="position:absolute; left:0px; top:0px; width:760px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Profile / Avatar Picker — Desktop</div>
+  <!-- backdrop -->
+  <div data-screen-label="Profile Desktop" style="width:760px; background:rgba(8,6,4,.72); border-radius:16px; padding:46px; font-family:'Space Mono',monospace;">
+    <!-- modal card -->
+    <div style="background:#1b1611; border-radius:14px; border:2px solid #3a2e22; box-shadow:0 22px 60px rgba(0,0,0,.6); overflow:hidden;">
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 22px; border-bottom:2px solid #2c2319;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#f3e9d6; letter-spacing:1px;">PROFILE</span>
+        <span style="width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:12px; color:#8c7c68; border:2px solid #3a2e22; border-radius:6px; cursor:pointer;">✕</span>
+      </div>
+
+      <div style="display:flex; gap:26px; padding:26px 22px;">
+        <!-- left: current identity -->
+        <div style="width:200px; flex:0 0 auto; display:flex; flex-direction:column; align-items:center; text-align:center;">
+          <div style="width:148px; height:148px; border-radius:50%; background:repeating-linear-gradient(45deg,#241c14 0 8px,#1f1810 8px 16px); border:3px solid #e2a93b; box-shadow:0 0 0 4px rgba(226,169,59,.14); display:flex; align-items:center; justify-content:center; font-size:12px; color:#6b6155;">PFP</div>
+          <div style="margin-top:18px; font-family:'Press Start 2P',monospace; font-size:14px; color:#f3e9d6;">NOVA_07</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:11px;"><span style="width:7px; height:7px; border-radius:50%; background:#2f9c8f;"></span><span style="font-size:11px; color:#8c7c68;">online</span></div>
+          <!-- coins -->
+          <div style="display:flex; align-items:center; gap:9px; margin-top:18px; background:#221a14; border:2px solid #3a2e22; border-radius:999px; padding:8px 16px 8px 10px;">
+            <span style="position:relative; display:inline-block; width:18px; height:18px;"><span style="position:absolute; top:0; left:0; width:3px; height:3px; background:transparent; box-shadow:6px 0 0 #a87a1f,9px 0 0 #a87a1f,12px 0 0 #a87a1f,3px 3px 0 #a87a1f,6px 3px 0 #e2a93b,9px 3px 0 #e2a93b,12px 3px 0 #e2a93b,15px 3px 0 #a87a1f,0 6px 0 #a87a1f,3px 6px 0 #e2a93b,6px 6px 0 #f7df9a,9px 6px 0 #e2a93b,12px 6px 0 #e2a93b,15px 6px 0 #e2a93b,18px 6px 0 #a87a1f,0 9px 0 #a87a1f,3px 9px 0 #e2a93b,6px 9px 0 #f7df9a,9px 9px 0 #e2a93b,12px 9px 0 #e2a93b,15px 9px 0 #e2a93b,18px 9px 0 #a87a1f,0 12px 0 #a87a1f,3px 12px 0 #e2a93b,6px 12px 0 #f7df9a,9px 12px 0 #e2a93b,12px 12px 0 #e2a93b,15px 12px 0 #e2a93b,18px 12px 0 #a87a1f,3px 15px 0 #a87a1f,6px 15px 0 #e2a93b,9px 15px 0 #e2a93b,12px 15px 0 #e2a93b,15px 15px 0 #a87a1f;"></span></span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#e2a93b;">1,240</span>
+          </div>
+        </div>
+
+        <!-- right: owned avatars -->
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px;">YOUR AVATARS</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#e2a93b; cursor:pointer;">+ GET MORE</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:13px;">
+            <sc-for list="{{ owned }}" as="a" hint-placeholder-count="8">
+              <div style="{{ a.cellStyle }}">
+                <div style="aspect-ratio:1/1; border-radius:8px; background:repeating-linear-gradient(45deg,#241c14 0 7px,#1f1810 7px 14px); display:flex; align-items:center; justify-content:center; font-size:9px; color:#6b6155;">PFP</div>
+                <div style="{{ a.nameStyle }}">{{ a.name }}</div>
+                <sc-if value="{{ a.selected }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:7px; right:7px; width:20px; height:20px; border-radius:50%; background:#e2a93b; color:#1b1611; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;">✓</span></sc-if>
+              </div>
+            </sc-for>
+            <!-- get more tile -->
+            <div style="border:2px dashed #3a2e22; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:14px 6px; cursor:pointer; min-height:104px;">
+              <span style="font-family:'Press Start 2P',monospace; font-size:20px; color:#5f5547;">+</span>
+              <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68; text-align:center; line-height:1.5;">SHOP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- footer -->
+      <div style="display:flex; align-items:center; gap:14px; padding:18px 22px; border-top:2px solid #2c2319;">
+        <span style="font-size:13px; color:#a4927a;">Selected: <span style="color:#f3e9d6; font-weight:700;">AGENT 01</span></span>
+        <div style="margin-left:auto; display:flex; gap:10px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; border:2px solid #3a2e22; padding:13px 16px; border-radius:6px; cursor:pointer;">CANCEL</span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:9px; color:#1b1611; background:#e2a93b; padding:13px 18px; border-radius:6px; box-shadow:0 4px 0 #a87a1f; cursor:pointer;">EQUIP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PROFILE / AVATAR PICKER — MOBILE ============ -->
+<div style="position:absolute; left:880px; top:0px; width:412px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Profile / Avatar Picker — Mobile</div>
+  <div data-screen-label="Profile Mobile" style="width:412px; background:#0e0b08; border-radius:42px; border:3px solid #2c2319; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:11px; font-family:'Space Mono',monospace;">
+    <div style="background:#1b1611; border-radius:32px; overflow:hidden; border:1px solid #3a2e22;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 22px 0; font-size:11px; color:#8c7c68;">
+        <span style="font-weight:700;">9:41</span>
+        <span style="width:46px; height:5px; border-radius:3px; background:#2c2319;"></span>
+        <span style="font-weight:700; letter-spacing:1px;">▮▮▮</span>
+      </div>
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:2px solid #2c2319;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#f3e9d6; letter-spacing:1px;">PROFILE</span>
+        <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:11px; color:#8c7c68; border:2px solid #3a2e22; border-radius:6px;">✕</span>
+      </div>
+
+      <div style="padding:24px 20px 22px;">
+        <!-- current identity -->
+        <div style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+          <div style="width:120px; height:120px; border-radius:50%; background:repeating-linear-gradient(45deg,#241c14 0 8px,#1f1810 8px 16px); border:3px solid #e2a93b; box-shadow:0 0 0 4px rgba(226,169,59,.14); display:flex; align-items:center; justify-content:center; font-size:11px; color:#6b6155;">PFP</div>
+          <div style="margin-top:15px; font-family:'Press Start 2P',monospace; font-size:13px; color:#f3e9d6;">NOVA_07</div>
+          <div style="display:flex; align-items:center; gap:9px; margin-top:12px; background:#221a14; border:2px solid #3a2e22; border-radius:999px; padding:7px 14px 7px 9px;">
+            <span style="position:relative; display:inline-block; width:16px; height:16px;"><span style="position:absolute; top:0; left:0; width:3px; height:3px; background:transparent; box-shadow:6px 0 0 #a87a1f,9px 0 0 #a87a1f,12px 0 0 #a87a1f,3px 3px 0 #a87a1f,6px 3px 0 #e2a93b,9px 3px 0 #e2a93b,12px 3px 0 #e2a93b,15px 3px 0 #a87a1f,0 6px 0 #a87a1f,3px 6px 0 #e2a93b,6px 6px 0 #f7df9a,9px 6px 0 #e2a93b,12px 6px 0 #e2a93b,15px 6px 0 #e2a93b,18px 6px 0 #a87a1f,0 9px 0 #a87a1f,3px 9px 0 #e2a93b,6px 9px 0 #f7df9a,9px 9px 0 #e2a93b,12px 9px 0 #e2a93b,15px 9px 0 #e2a93b,18px 9px 0 #a87a1f,0 12px 0 #a87a1f,3px 12px 0 #e2a93b,6px 12px 0 #f7df9a,9px 12px 0 #e2a93b,12px 12px 0 #e2a93b,15px 12px 0 #e2a93b,18px 12px 0 #a87a1f,3px 15px 0 #a87a1f,6px 15px 0 #e2a93b,9px 15px 0 #e2a93b,12px 15px 0 #e2a93b,15px 15px 0 #a87a1f;"></span></span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#e2a93b;">1,240</span>
+          </div>
+        </div>
+
+        <!-- owned grid -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin:24px 0 12px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px;">YOUR AVATARS</span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#e2a93b;">+ MORE</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:11px;">
+          <sc-for list="{{ owned }}" as="a" hint-placeholder-count="6">
+            <div style="{{ a.cellStyleM }}">
+              <div style="aspect-ratio:1/1; border-radius:8px; background:repeating-linear-gradient(45deg,#241c14 0 7px,#1f1810 7px 14px); display:flex; align-items:center; justify-content:center; font-size:9px; color:#6b6155;">PFP</div>
+              <div style="{{ a.nameStyleM }}">{{ a.name }}</div>
+              <sc-if value="{{ a.selected }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; top:6px; right:6px; width:18px; height:18px; border-radius:50%; background:#e2a93b; color:#1b1611; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center;">✓</span></sc-if>
+            </div>
+          </sc-for>
+          <div style="border:2px dashed #3a2e22; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:12px 4px; min-height:92px;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:17px; color:#5f5547;">+</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68;">SHOP</span>
+          </div>
+        </div>
+
+        <!-- equip -->
+        <div style="margin-top:22px; font-family:'Press Start 2P',monospace; font-size:11px; color:#1b1611; background:#e2a93b; padding:16px; border-radius:6px; text-align:center; box-shadow:0 5px 0 #a87a1f;">EQUIP AGENT 01</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  buildOwned() {
+    const data = [
+      ['AGENT 01', true], ['ROOKIE', false], ['SCOUT', false], ['RANGER', false],
+      ['NOMAD', false], ['CIPHER', false], ['SPECTER', false]
+    ];
+    return data.map(([name, selected]) => {
+      const cell = { position:'relative', background:'#15110c', border:'2px solid #3a2e22',
+        borderRadius:'10px', padding:'8px', cursor:'pointer' };
+      const cellM = { ...cell };
+      if (selected) { cell.border = '2px solid #e2a93b'; cell.boxShadow = '0 0 0 3px rgba(226,169,59,.14)';
+        cellM.border = '2px solid #e2a93b'; cellM.boxShadow = '0 0 0 3px rgba(226,169,59,.14)'; }
+      const nameStyle = { marginTop:'8px', fontSize:'11px', textAlign:'center', fontWeight:700,
+        color: selected ? '#e2a93b' : '#a4927a', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' };
+      const nameStyleM = { ...nameStyle, fontSize:'10px', marginTop:'7px' };
+      return { name, selected, cellStyle:cell, cellStyleM:cellM, nameStyle, nameStyleM };
+    });
+  }
+  renderVals() { return { owned: this.buildOwned() }; }
+}
+</script>
+</body>
+</html>

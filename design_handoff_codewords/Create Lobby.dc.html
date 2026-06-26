@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+</style>
+</helmet>
+
+<!-- ============ CREATE LOBBY — DESKTOP ============ -->
+<div style="position:absolute; left:0px; top:0px; width:1000px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Create Lobby — Desktop</div>
+  <div data-screen-label="Create Desktop" style="width:1000px; background:#1b1611; border-radius:14px; border:2px solid #3a2e22; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:30px 36px 36px; font-family:'Space Mono',monospace;">
+
+    <!-- header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid #2c2319;">
+      <div style="display:flex; align-items:baseline; gap:9px;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#e2a93b; text-shadow:0 3px 0 rgba(0,0,0,.4);">CODE</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#f3e9d6; text-shadow:0 3px 0 rgba(0,0,0,.4);">WORDS</span>
+      </div>
+      <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#8c7c68; letter-spacing:1px;">NEW LOBBY</span>
+      <div style="font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; border:2px solid #3a2e22; padding:11px 14px; border-radius:4px; cursor:pointer;">← BACK</div>
+    </div>
+
+    <!-- title -->
+    <div style="margin-top:26px;">
+      <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:22px; color:#f3e9d6; line-height:1.4;">Game settings</h1>
+      <p style="margin:12px 0 0; font-size:13px; color:#a4927a;">Set the rules, then create your lobby and share the code.</p>
+    </div>
+
+    <!-- GAME MODE -->
+    <div style="margin-top:28px;">
+      <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:14px;">GAME MODE</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px;">
+        <!-- classic (selected) -->
+        <div style="background:#221a14; border:2px solid #e2a93b; border-radius:12px; padding:20px 18px; cursor:pointer; box-shadow:0 0 0 3px rgba(226,169,59,.12);">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#e2a93b;">CLASSIC</span>
+            <span style="width:18px; height:18px; border-radius:50%; background:#e2a93b; color:#1b1611; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700;">✓</span>
+          </div>
+        </div>
+        <!-- friend group -->
+        <div style="background:#15110c; border:2px solid #3a2e22; border-radius:12px; padding:20px 18px; cursor:pointer;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#f3e9d6;">FRIEND</span>
+            <span style="width:18px; height:18px; border-radius:50%; border:2px solid #3a2e22;"></span>
+          </div>
+        </div>
+        <!-- extended -->
+        <div style="background:#15110c; border:2px solid #3a2e22; border-radius:12px; padding:20px 18px; cursor:pointer;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#f3e9d6;">EXTENDED</span>
+            <span style="width:18px; height:18px; border-radius:50%; border:2px solid #3a2e22;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- two-up: timer + players -->
+    <div style="display:flex; gap:30px; margin-top:30px;">
+      <!-- TURN TIMER -->
+      <div style="flex:1;">
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:14px;">TURN TIMER</div>
+        <div style="display:flex; gap:9px;">
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:10px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:15px 0; cursor:pointer;">OFF</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:10px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:15px 0; cursor:pointer;">30s</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:10px; color:#1b1611; background:#e2a93b; border:2px solid #e2a93b; border-radius:8px; padding:15px 0; cursor:pointer; box-shadow:0 3px 0 #a87a1f;">60s</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:10px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:15px 0; cursor:pointer;">90s</span>
+        </div>
+        <p style="margin:12px 0 0; font-size:12px; color:#6b6155;">How long each team has to give a clue and guess.</p>
+      </div>
+
+      <!-- MAX PLAYERS -->
+      <div style="flex:1;">
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:14px;">MAX PLAYERS</div>
+        <div style="display:flex; align-items:center; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:9px 12px;">
+          <span style="width:46px; height:42px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:16px; color:#f3e9d6; border:2px solid #3a2e22; border-radius:6px; cursor:pointer;">−</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:22px; color:#e2a93b;">8</span>
+          <span style="width:46px; height:42px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:16px; color:#1b1611; background:#e2a93b; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #a87a1f;">+</span>
+        </div>
+        <p style="margin:12px 0 0; font-size:12px; color:#6b6155;">Total agents allowed across both teams (4–16).</p>
+      </div>
+    </div>
+
+    <!-- create bar -->
+    <div style="display:flex; align-items:center; gap:18px; margin-top:32px; padding-top:22px; border-top:2px solid #2c2319;">
+      <div style="font-size:13px; color:#a4927a;">A 5-character room code is generated when you create the lobby.</div>
+      <div style="margin-left:auto; font-family:'Press Start 2P',monospace; font-size:13px; color:#1b1611; background:#e2a93b; padding:18px 30px; border-radius:6px; box-shadow:0 5px 0 #a87a1f; cursor:pointer; letter-spacing:1px;">CREATE LOBBY →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CREATE LOBBY — MOBILE ============ -->
+<div style="position:absolute; left:1100px; top:0px; width:412px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Create Lobby — Mobile</div>
+  <div data-screen-label="Create Mobile" style="width:412px; background:#0e0b08; border-radius:42px; border:3px solid #2c2319; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:11px; font-family:'Space Mono',monospace;">
+    <div style="background:#1b1611; border-radius:32px; overflow:hidden; border:1px solid #3a2e22;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 22px 0; font-size:11px; color:#8c7c68;">
+        <span style="font-weight:700;">9:41</span>
+        <span style="width:46px; height:5px; border-radius:3px; background:#2c2319;"></span>
+        <span style="font-weight:700; letter-spacing:1px;">▮▮▮</span>
+      </div>
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:2px solid #2c2319;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6; border:2px solid #3a2e22; padding:9px 11px; border-radius:5px;">← BACK</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:9px; color:#8c7c68; letter-spacing:1px;">NEW LOBBY</span>
+      </div>
+
+      <div style="padding:22px 20px 26px;">
+        <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:16px; color:#f3e9d6; line-height:1.4;">Game settings</h1>
+
+        <!-- GAME MODE -->
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin:24px 0 12px;">GAME MODE</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:14px; background:#221a14; border:2px solid #e2a93b; border-radius:11px; padding:15px 16px;">
+            <span style="width:18px; height:18px; border-radius:50%; flex:0 0 auto; background:#e2a93b; color:#1b1611; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700;">✓</span>
+            <div style="flex:1; min-width:0;"><div style="font-family:'Press Start 2P',monospace; font-size:10px; color:#e2a93b;">CLASSIC</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; background:#15110c; border:2px solid #3a2e22; border-radius:11px; padding:15px 16px;">
+            <span style="width:18px; height:18px; border-radius:50%; flex:0 0 auto; border:2px solid #3a2e22;"></span>
+            <div style="flex:1; min-width:0;"><div style="font-family:'Press Start 2P',monospace; font-size:10px; color:#f3e9d6;">FRIEND</div></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:14px; background:#15110c; border:2px solid #3a2e22; border-radius:11px; padding:15px 16px;">
+            <span style="width:18px; height:18px; border-radius:50%; flex:0 0 auto; border:2px solid #3a2e22;"></span>
+            <div style="flex:1; min-width:0;"><div style="font-family:'Press Start 2P',monospace; font-size:10px; color:#f3e9d6;">EXTENDED</div></div>
+          </div>
+        </div>
+
+        <!-- TURN TIMER -->
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin:24px 0 12px;">TURN TIMER</div>
+        <div style="display:flex; gap:8px;">
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:9px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:14px 0;">OFF</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:9px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:14px 0;">30s</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:9px; color:#1b1611; background:#e2a93b; border:2px solid #e2a93b; border-radius:8px; padding:14px 0; box-shadow:0 3px 0 #a87a1f;">60s</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:9px; color:#8c7c68; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:14px 0;">90s</span>
+        </div>
+
+        <!-- MAX PLAYERS -->
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin:24px 0 12px;">MAX PLAYERS</div>
+        <div style="display:flex; align-items:center; background:#15110c; border:2px solid #3a2e22; border-radius:8px; padding:8px 10px;">
+          <span style="width:44px; height:40px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:15px; color:#f3e9d6; border:2px solid #3a2e22; border-radius:6px;">−</span>
+          <span style="flex:1; text-align:center; font-family:'Press Start 2P',monospace; font-size:20px; color:#e2a93b;">8</span>
+          <span style="width:44px; height:40px; display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace; font-size:15px; color:#1b1611; background:#e2a93b; border-radius:6px; box-shadow:0 3px 0 #a87a1f;">+</span>
+        </div>
+
+        <!-- create -->
+        <div style="margin-top:26px; font-family:'Press Start 2P',monospace; font-size:11px; color:#1b1611; background:#e2a93b; padding:17px; border-radius:6px; text-align:center; box-shadow:0 5px 0 #a87a1f; letter-spacing:1px;">CREATE LOBBY →</div>
+        <p style="margin:14px 0 0; font-size:11px; color:#6b6155; text-align:center;">A 5-character room code is generated on create.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

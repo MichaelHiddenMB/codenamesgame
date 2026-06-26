@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; }
+  body{ margin:0; }
+  @keyframes pulseDot{ 0%,100%{ opacity:1; transform:scale(1);} 50%{ opacity:.3; transform:scale(.78);} }
+  @keyframes caret{ 0%,100%{ opacity:1;} 50%{ opacity:0;} }
+</style>
+</helmet>
+
+<!-- ============ HOST / LOBBY — DESKTOP ============ -->
+<div style="position:absolute; left:0px; top:0px; width:1000px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Host / Lobby — Desktop</div>
+  <div data-screen-label="Host Desktop" style="width:1000px; background:#1b1611; border-radius:14px; border:2px solid #3a2e22; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:30px 36px 36px; font-family:'Space Mono',monospace;">
+
+    <!-- header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid #2c2319;">
+      <div style="display:flex; align-items:baseline; gap:9px;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#e2a93b; text-shadow:0 3px 0 rgba(0,0,0,.4);">CODE</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#f3e9d6; text-shadow:0 3px 0 rgba(0,0,0,.4);">WORDS</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:9px;">
+        <span style="width:9px; height:9px; border-radius:2px; background:#e2a93b; box-shadow:0 0 9px #e2a93b; animation:pulseDot 1.4s infinite;"></span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#f3e9d6;">LOBBY · WAITING</span>
+      </div>
+      <div style="font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; border:2px solid #3a2e22; padding:11px 14px; border-radius:4px; cursor:pointer;">← LEAVE</div>
+    </div>
+
+    <!-- room code -->
+    <div style="padding:22px 0; border-bottom:2px solid #2c2319;">
+      <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:13px;">ROOM CODE</div>
+      <div style="display:inline-flex; align-items:center; gap:0; background:#120e0a; border:2px solid #3a2e22; border-radius:10px; overflow:hidden;">
+        <span style="padding:16px 24px; font-family:'Press Start 2P',monospace; font-size:26px; color:#e2a93b; letter-spacing:10px;">X4K9P</span>
+        <span style="align-self:stretch; width:2px; background:#3a2e22;"></span>
+        <span style="display:flex; align-items:center; gap:9px; padding:0 20px; align-self:stretch; font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; cursor:pointer;"><span style="position:relative; display:inline-block; width:15px; height:15px;"><span style="position:absolute; top:0; left:4px; width:10px; height:10px; border:2px solid #e2a93b; border-radius:2px;"></span><span style="position:absolute; top:4px; left:0; width:10px; height:10px; border:2px solid #8c7c68; border-radius:2px; background:#120e0a;"></span></span>COPY</span>
+      </div>
+    </div>
+
+    <!-- teams -->
+    <div style="display:flex; gap:18px; margin-top:24px;">
+      <!-- RUST column -->
+      <div style="flex:1; background:#15110c; border:2px solid #3a2e22; border-top:4px solid #d65a37; border-radius:12px; padding:18px; box-shadow:inset 0 0 40px rgba(0,0,0,.4);">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:2px solid #2c2319;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#d65a37; letter-spacing:1px;">RUST</span>
+          <span style="font-family:'Space Mono',monospace; font-size:12px; color:#8c7c68;">3 players</span>
+        </div>
+
+        <div style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68; letter-spacing:1px; margin:16px 0 11px;">★ SPYMASTER</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; background:#221a14; border:1px solid #3a2e22; border-radius:8px;">
+          <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+          <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">VECTOR</span>
+          <span style="font-size:14px; color:#e2a93b;">★</span>
+        </div>
+
+        <div style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68; letter-spacing:1px; margin:18px 0 11px;">OPERATIVES</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:11px; padding:8px 10px; border-bottom:1px solid #241c14;">
+            <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+            <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">PIXEL</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:7px 9px; border-radius:5px; cursor:pointer;">★ SET</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:11px; padding:8px 10px; border-bottom:1px solid #241c14;">
+            <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+            <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">RELAY</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:7px 9px; border-radius:5px; cursor:pointer;">★ SET</span>
+          </div>
+        </div>
+
+        <div style="margin-top:18px; font-family:'Press Start 2P',monospace; font-size:9px; color:#d65a37; border:2px solid #6a3320; padding:13px; border-radius:6px; text-align:center; cursor:pointer;">MOVE TO RUST</div>
+      </div>
+
+      <!-- center VS -->
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;">
+        <div style="width:2px; flex:1; background:#2c2319;"></div>
+        <span style="font-family:'Press Start 2P',monospace; font-size:12px; color:#5f5547;">VS</span>
+        <div style="width:2px; flex:1; background:#2c2319;"></div>
+      </div>
+
+      <!-- TEAL column -->
+      <div style="flex:1; background:#15110c; border:2px solid #3a2e22; border-top:4px solid #2f9c8f; border-radius:12px; padding:18px; box-shadow:inset 0 0 40px rgba(0,0,0,.4);">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; border-bottom:2px solid #2c2319;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:11px; color:#2f9c8f; letter-spacing:1px;">TEAL</span>
+          <span style="font-family:'Space Mono',monospace; font-size:12px; color:#8c7c68;">3 players</span>
+        </div>
+
+        <div style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68; letter-spacing:1px; margin:16px 0 11px;">★ SPYMASTER</div>
+        <div style="display:flex; align-items:center; gap:11px; padding:9px 10px; background:#221a14; border:1px solid #3a2e22; border-radius:8px;">
+          <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+          <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">CIPHER</span>
+          <span style="font-size:14px; color:#e2a93b;">★</span>
+        </div>
+
+        <div style="font-family:'Press Start 2P',monospace; font-size:7px; color:#8c7c68; letter-spacing:1px; margin:18px 0 11px;">OPERATIVES</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:11px; padding:8px 10px; background:#1c2624; border:1px solid #2f5a54; border-radius:8px;">
+            <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+            <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">NOVA <span style="font-family:'Press Start 2P',monospace; font-size:6px; color:#2f9c8f; margin-left:4px;">YOU</span></span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:7px 9px; border-radius:5px; cursor:pointer;">★ SET</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:11px; padding:8px 10px; border-bottom:1px solid #241c14;">
+            <div style="width:32px; height:32px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22; display:flex; align-items:center; justify-content:center; font-size:8px; color:#6b6155;">PFP</div>
+            <span style="flex:1; font-size:14px; color:#f3e9d6; font-weight:700;">ECHO</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:7px 9px; border-radius:5px; cursor:pointer;">★ SET</span>
+          </div>
+        </div>
+
+        <div style="margin-top:18px; font-family:'Press Start 2P',monospace; font-size:9px; color:#5f5547; border:2px solid #2c2319; padding:13px; border-radius:6px; text-align:center;">ON THIS TEAM</div>
+      </div>
+    </div>
+
+    <!-- start bar -->
+    <div style="display:flex; align-items:center; gap:18px; margin-top:24px; padding-top:20px; border-top:2px solid #2c2319;">
+      <div>
+        <div style="font-size:13px; color:#f3e9d6;">6 agents · both teams have a spymaster</div>
+        <div style="font-size:11px; color:#6b6155; margin-top:5px;">Only the host can start the game.</div>
+      </div>
+      <div style="margin-left:auto; font-family:'Press Start 2P',monospace; font-size:13px; color:#1b1611; background:#e2a93b; padding:18px 30px; border-radius:6px; box-shadow:0 5px 0 #a87a1f; cursor:pointer; letter-spacing:1px;">START GAME →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HOST / LOBBY — MOBILE ============ -->
+<div style="position:absolute; left:1100px; top:0px; width:412px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Host / Lobby — Mobile</div>
+  <div data-screen-label="Host Mobile" style="width:412px; background:#0e0b08; border-radius:42px; border:3px solid #2c2319; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:11px; font-family:'Space Mono',monospace;">
+    <div style="background:#1b1611; border-radius:32px; overflow:hidden; border:1px solid #3a2e22;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 22px 0; font-size:11px; color:#8c7c68;">
+        <span style="font-weight:700;">9:41</span>
+        <span style="width:46px; height:5px; border-radius:3px; background:#2c2319;"></span>
+        <span style="font-weight:700; letter-spacing:1px;">▮▮▮</span>
+      </div>
+
+      <!-- header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 20px 14px; border-bottom:2px solid #2c2319;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6; border:2px solid #3a2e22; padding:9px 11px; border-radius:5px;">← LEAVE</span>
+        <div style="display:flex; align-items:center; gap:7px;">
+          <span style="width:8px; height:8px; border-radius:2px; background:#e2a93b; box-shadow:0 0 8px #e2a93b; animation:pulseDot 1.4s infinite;"></span>
+          <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6;">WAITING</span>
+        </div>
+      </div>
+
+      <!-- room code -->
+      <div style="padding:18px 20px; border-bottom:2px solid #2c2319; text-align:center;">
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px;">ROOM CODE</div>
+        <div style="display:flex; align-items:center; margin-top:13px; background:#120e0a; border:2px solid #3a2e22; border-radius:9px; overflow:hidden;">
+          <span style="flex:1; padding:15px 0; font-family:'Press Start 2P',monospace; font-size:21px; color:#e2a93b; letter-spacing:7px; text-align:center;">X4K9P</span>
+          <span style="align-self:stretch; width:2px; background:#3a2e22;"></span>
+          <span style="display:flex; align-items:center; gap:7px; padding:0 16px; align-self:stretch; font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6;"><span style="position:relative; display:inline-block; width:13px; height:13px;"><span style="position:absolute; top:0; left:3px; width:9px; height:9px; border:2px solid #e2a93b; border-radius:2px;"></span><span style="position:absolute; top:3px; left:0; width:9px; height:9px; border:2px solid #8c7c68; border-radius:2px; background:#120e0a;"></span></span>COPY</span>
+        </div>
+      </div>
+
+      <!-- teams stacked -->
+      <div style="padding:16px 20px; display:flex; flex-direction:column; gap:14px;">
+        <!-- RUST -->
+        <div style="background:#15110c; border:2px solid #3a2e22; border-top:4px solid #d65a37; border-radius:12px; padding:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:11px; border-bottom:2px solid #2c2319;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#d65a37;">RUST</span>
+            <span style="font-size:11px; color:#8c7c68;">3 players</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:11px 4px 9px;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">VECTOR</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#e2a93b;">★ SPY</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px solid #241c14;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">PIXEL</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:6px 8px; border-radius:5px;">★ SET</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px solid #241c14;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">RELAY</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:6px 8px; border-radius:5px;">★ SET</span>
+          </div>
+          <div style="margin-top:12px; font-family:'Press Start 2P',monospace; font-size:8px; color:#d65a37; border:2px solid #6a3320; padding:11px; border-radius:6px; text-align:center;">MOVE TO RUST</div>
+        </div>
+
+        <!-- TEAL -->
+        <div style="background:#15110c; border:2px solid #3a2e22; border-top:4px solid #2f9c8f; border-radius:12px; padding:14px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:11px; border-bottom:2px solid #2c2319;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:10px; color:#2f9c8f;">TEAL</span>
+            <span style="font-size:11px; color:#8c7c68;">3 players</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:11px 4px 9px;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">CIPHER</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#e2a93b;">★ SPY</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px solid #241c14; background:#1c2624; border-radius:6px;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">NOVA <span style="font-family:'Press Start 2P',monospace; font-size:6px; color:#2f9c8f; margin-left:3px;">YOU</span></span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:6px 8px; border-radius:5px;">★ SET</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px solid #241c14;">
+            <div style="width:30px; height:30px; border-radius:50%; flex:0 0 auto; background:repeating-linear-gradient(45deg,#2c2319 0 5px,#241c14 5px 10px); border:1px solid #3a2e22;"></div>
+            <span style="flex:1; font-size:13px; color:#f3e9d6; font-weight:700;">ECHO</span>
+            <span style="font-family:'Press Start 2P',monospace; font-size:7px; color:#7c7163; border:1px solid #3a2e22; padding:6px 8px; border-radius:5px;">★ SET</span>
+          </div>
+          <div style="margin-top:12px; font-family:'Press Start 2P',monospace; font-size:8px; color:#5f5547; border:2px solid #2c2319; padding:11px; border-radius:6px; text-align:center;">ON THIS TEAM</div>
+        </div>
+      </div>
+
+      <!-- start -->
+      <div style="padding:0 20px 22px;">
+        <div style="font-size:11px; color:#6b6155; text-align:center; margin-bottom:12px;">Only the host can start the game.</div>
+        <div style="font-family:'Press Start 2P',monospace; font-size:11px; color:#1b1611; background:#e2a93b; padding:17px; border-radius:6px; text-align:center; box-shadow:0 5px 0 #a87a1f; letter-spacing:1px;">START GAME →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ JOIN — DESKTOP ============ -->
+<div style="position:absolute; left:0px; top:980px; width:1000px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Join — Desktop</div>
+  <div data-screen-label="Join Desktop" style="width:1000px; background:#1b1611; border-radius:14px; border:2px solid #3a2e22; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:30px 36px 36px; font-family:'Space Mono',monospace;">
+    <!-- header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:2px solid #2c2319;">
+      <div style="display:flex; align-items:baseline; gap:9px;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#e2a93b; text-shadow:0 3px 0 rgba(0,0,0,.4);">CODE</span>
+        <span style="font-family:'Press Start 2P',monospace; font-size:18px; color:#f3e9d6; text-shadow:0 3px 0 rgba(0,0,0,.4);">WORDS</span>
+      </div>
+      <div style="font-family:'Press Start 2P',monospace; font-size:9px; color:#f3e9d6; border:2px solid #3a2e22; padding:11px 14px; border-radius:4px; cursor:pointer;">← BACK</div>
+    </div>
+
+    <!-- centered join -->
+    <div style="display:flex; flex-direction:column; align-items:center; padding:54px 0 40px;">
+      <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:22px; color:#f3e9d6; line-height:1.4;">Join a game</h1>
+      <p style="margin:14px 0 0; font-size:14px; color:#a4927a;">Enter the room code your host shared with you.</p>
+
+      <div style="width:420px; margin-top:34px;">
+        <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:11px;">ROOM CODE</div>
+        <div style="display:flex; align-items:center; background:#120e0a; border:2px solid #3a2e22; border-radius:10px; padding:18px 20px;">
+          <span style="font-family:'Press Start 2P',monospace; font-size:22px; color:#f3e9d6; letter-spacing:8px;">X4K9</span>
+          <span style="width:3px; height:26px; background:#e2a93b; margin-left:6px; animation:caret 1.1s infinite;"></span>
+        </div>
+        <div style="margin-top:18px; font-family:'Press Start 2P',monospace; font-size:11px; color:#1b1611; background:#e2a93b; padding:18px; border-radius:6px; text-align:center; box-shadow:0 5px 0 #a87a1f; cursor:pointer; letter-spacing:1px;">JOIN LOBBY →</div>
+        <p style="margin:18px 0 0; font-size:12px; color:#6b6155; text-align:center;">Don't have a code? Ask your host, or head back and host your own.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ JOIN — MOBILE ============ -->
+<div style="position:absolute; left:1100px; top:980px; width:412px;">
+  <div data-drags-parent="1" style="font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#7c7163; margin-bottom:12px;">Join — Mobile</div>
+  <div data-screen-label="Join Mobile" style="width:412px; background:#0e0b08; border-radius:42px; border:3px solid #2c2319; box-shadow:0 22px 60px rgba(0,0,0,.5); padding:11px; font-family:'Space Mono',monospace;">
+    <div style="background:#1b1611; border-radius:32px; overflow:hidden; border:1px solid #3a2e22;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 22px 0; font-size:11px; color:#8c7c68;">
+        <span style="font-weight:700;">9:41</span>
+        <span style="width:46px; height:5px; border-radius:3px; background:#2c2319;"></span>
+        <span style="font-weight:700; letter-spacing:1px;">▮▮▮</span>
+      </div>
+
+      <div style="display:flex; align-items:center; padding:14px 20px 14px; border-bottom:2px solid #2c2319;">
+        <span style="font-family:'Press Start 2P',monospace; font-size:8px; color:#f3e9d6; border:2px solid #3a2e22; padding:9px 11px; border-radius:5px;">← BACK</span>
+      </div>
+
+      <div style="padding:50px 28px 44px; display:flex; flex-direction:column; align-items:center;">
+        <h1 style="margin:0; font-family:'Press Start 2P',monospace; font-size:17px; color:#f3e9d6; line-height:1.4; text-align:center;">Join a game</h1>
+        <p style="margin:12px 0 0; font-size:13px; color:#a4927a; text-align:center; line-height:1.6;">Enter the room code your host<br>shared with you.</p>
+
+        <div style="width:100%; margin-top:30px;">
+          <div style="font-family:'Press Start 2P',monospace; font-size:8px; color:#8c7c68; letter-spacing:1px; margin-bottom:10px;">ROOM CODE</div>
+          <div style="display:flex; align-items:center; justify-content:center; background:#120e0a; border:2px solid #3a2e22; border-radius:10px; padding:18px 16px;">
+            <span style="font-family:'Press Start 2P',monospace; font-size:20px; color:#f3e9d6; letter-spacing:7px;">X4K9</span>
+            <span style="width:3px; height:24px; background:#e2a93b; margin-left:5px; animation:caret 1.1s infinite;"></span>
+          </div>
+          <div style="margin-top:16px; font-family:'Press Start 2P',monospace; font-size:11px; color:#1b1611; background:#e2a93b; padding:17px; border-radius:6px; text-align:center; box-shadow:0 5px 0 #a87a1f; letter-spacing:1px;">JOIN LOBBY →</div>
+          <p style="margin:16px 0 0; font-size:12px; color:#6b6155; text-align:center; line-height:1.6;">Don't have a code? Ask your host, or head back and host your own.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
