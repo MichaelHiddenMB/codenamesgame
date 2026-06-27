@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PfpAvatar } from '../components/PfpAvatar';
+import { avatarUrls } from '../avatarMap';
 import { CoinPill } from '../components/CoinPill';
 import { GoldButton } from '../components/GoldButton';
 import { api } from '../api';
@@ -61,7 +62,7 @@ export function ProfileModal({ onClose, onEquip }: { onClose: () => void; onEqui
         <div style={{ display: 'flex', gap: 26, padding: '26px 22px' }}>
           {/* left: identity */}
           <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <PfpAvatar size={148} goldRing />
+            <PfpAvatar size={148} goldRing avatarId={user?.equippedAvatarId} />
             <div style={{ marginTop: 18, fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: '#f3e9d6' }}>
               {user?.username.toUpperCase()}
             </div>
@@ -92,7 +93,9 @@ export function ProfileModal({ onClose, onEquip }: { onClose: () => void; onEqui
                   boxShadow: selectedId === avatar.id ? '0 0 0 3px rgba(226,169,59,.14)' : 'none',
                   borderRadius: 10, padding: 8, cursor: 'pointer',
                 }}>
-                  <div style={{ aspectRatio: '1/1', borderRadius: 8, background: 'repeating-linear-gradient(45deg, #241c14 0 7px, #1f1810 7px 14px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#6b6155' }}>PFP</div>
+                  <div style={{ aspectRatio: '1/1', borderRadius: 8, overflow: 'hidden', background: 'repeating-linear-gradient(45deg, #241c14 0 7px, #1f1810 7px 14px)' }}>
+                    <img src={avatarUrls[avatar.id]} alt={avatar.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
                   <div style={{ marginTop: 8, fontSize: 11, textAlign: 'center', fontWeight: 700, color: selectedId === avatar.id ? '#e2a93b' : '#a4927a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {avatar.name}
                   </div>

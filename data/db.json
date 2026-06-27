@@ -4,12 +4,13 @@
       "id": 1,
       "username": "HiddenMB",
       "password_hash": "$2a$10$idUsb/.XkHGYKzAoZM5ym.WeBuGtHQxH9/572FXDXHi9jXcbmWCAC",
-      "coins": 130,
-      "equipped_avatar_id": 1,
+      "coins": 80,
+      "equipped_avatar_id": 4,
       "owned_avatar_ids": [
         1,
         2,
-        3
+        3,
+        4
       ],
       "created_at": "2026-06-26T03:38:53.112Z"
     },
@@ -17,7 +18,7 @@
       "id": 2,
       "username": "test1",
       "password_hash": "$2a$10$exmA6VR.d7nf53ncrjn6f./uf4DUwyQ.auMAPDo3CiKhQvUxzfrYS",
-      "coins": 250,
+      "coins": 100,
       "equipped_avatar_id": 1,
       "owned_avatar_ids": [
         1,
@@ -29,11 +30,12 @@
       "id": 3,
       "username": "test2",
       "password_hash": "$2a$10$WzQOf3/K1OHDec188um/I.oJybVEBQ7Jb6k/stmyvKwReGv/8h02G",
-      "coins": 300,
+      "coins": 230,
       "equipped_avatar_id": 1,
       "owned_avatar_ids": [
         1,
-        2
+        2,
+        3
       ],
       "created_at": "2026-06-26T03:54:18.466Z"
     },
@@ -60,7 +62,16 @@
         2
       ],
       "created_at": "2026-06-26T04:33:00.851Z"
+    },
+    {
+      "id": 6,
+      "username": "test5",
+      "password_hash": "$2a$10$ZPE9RBkMekXG9mqGX3iZ3OEWrHX1dqg7dk1Zvv.myNRYivL20q5/.",
+      "coins": 100,
+      "equipped_avatar_id": 0,
+      "owned_avatar_ids": [],
+      "created_at": "2026-06-26T22:12:05.607Z"
     }
   ],
-  "nextUserId": 6
+  "nextUserId": 7
 }

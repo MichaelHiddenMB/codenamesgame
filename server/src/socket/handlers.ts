@@ -1,9 +1,9 @@
 import { Server as IOServer, Socket } from 'socket.io';
 import { verifyToken, AuthPayload } from '../middleware/auth';
 import {
-  generateBoard, applyClue, applyGuess, applyEndTurn,
+  generateBoard, applyClue, applyGuess, applyEndTurn, applyPowerUp,
   redactBoardForOperative, countRemaining,
-  GameState, Team, GameMode, TimerOption
+  GameState, Team, GameMode, TimerOption, PowerUpType, POWER_UP_PRICES
 } from '../game/engine';
 import { db } from '../db';
 
@@ -11,6 +11,7 @@ interface Player {
   userId: number;
   username: string;
   equippedAvatarId: number;
+  coins: number;
   team: Team | null;
   role: 'spymaster' | 'operative' | 'spectator';
   socketId: string;
@@ -19,7 +20,7 @@ interface Player {
 interface LobbyState {
   code: string;
   hostUserId: number;
-  settings: { mode: GameMode; timer: TimerOption; maxPlayers: number };
+  settings: { mode: GameMode; timer: TimerOption; maxPlayers: number; powerUps: boolean };
   players: Player[];
   status: 'waiting' | 'in-game';
 }
@@ -33,6 +34,26 @@ const pastPlayers = new Map<string, { team: Team | null; role: 'spymaster' | 'op
 // Spectator slots available per game — frozen at game-start so mid-game departures
 // don't open slots for strangers. keyed by room code.
 const gameSpectatorSlots = new Map<string, number>();
+// Per-room hover state: roomCode → Map<userId, Set<cardIndex>>
+const cardHovers = new Map<string, Map<number, Set<number>>>();
+
+function broadcastHovers(io: IOServer, code: string, lobby: LobbyState) {
+  const roomHovers = cardHovers.get(code);
+  if (!roomHovers) { io.to(code).emit('game:hovers', []); return; }
+  const hovers = Array.from(roomHovers.entries())
+    .filter(([, indices]) => indices.size > 0)
+    .map(([userId, indices]) => {
+      const player = lobby.players.find(p => p.userId === userId);
+      return player ? { userId, username: player.username, cardIndices: Array.from(indices) } : null;
+    }).filter(Boolean);
+  io.to(code).emit('game:hovers', hovers);
+}
+
+function clearHovers(io: IOServer, code: string, lobby: LobbyState) {
+  const roomHovers = cardHovers.get(code);
+  if (roomHovers) roomHovers.clear();
+  io.to(code).emit('game:hovers', []);
+}
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -55,6 +76,7 @@ function lobbyPublic(lobby: LobbyState) {
       userId: p.userId,
       username: p.username,
       equippedAvatarId: p.equippedAvatarId,
+      coins: p.coins,
       team: p.team,
       role: p.role,
     })),
@@ -76,6 +98,8 @@ function gamePublicForPlayer(state: GameState, role: 'spymaster' | 'operative' |
     round: state.round,
     timerEndsAt: state.timerEndsAt,
     avoidPenaltyTeam: state.avoidPenaltyTeam,
+    powerUpsEnabled: state.powerUpsEnabled,
+    doubleClueTeam: state.doubleClueTeam,
   };
 }
 
@@ -123,6 +147,7 @@ function scheduleTimer(io: IOServer, code: string, endsAt: number) {
     const timerSec = getTimerSeconds(lobby.settings.timer);
     const next = applyEndTurn(game, timerSec);
     games.set(code, next);
+    clearHovers(io, code, lobby);
     broadcastGame(io, code);
     if (next.timerEndsAt) scheduleTimer(io, code, next.timerEndsAt);
   }, delay + 150); // 150 ms grace for last-second guesses
@@ -166,13 +191,13 @@ export function registerSocketHandlers(io: IOServer) {
       break; // a user can only be in one lobby
     }
 
-    function getUserInfo(): { userId: number; username: string; equippedAvatarId: number } {
+    function getUserInfo(): { userId: number; username: string; equippedAvatarId: number; coins: number } {
       const row = db.getUserById(user.userId);
-      return { userId: user.userId, username: user.username, equippedAvatarId: row?.equipped_avatar_id ?? 1 };
+      return { userId: user.userId, username: user.username, equippedAvatarId: row?.equipped_avatar_id ?? 0, coins: row?.coins ?? 0 };
     }
 
     // ─── LOBBY: CREATE ───────────────────────────────────────────────────────
-    socket.on('lobby:create', (settings: { mode: GameMode; timer: TimerOption; maxPlayers: number }) => {
+    socket.on('lobby:create', (settings: { mode: GameMode; timer: TimerOption; maxPlayers: number; powerUps?: boolean }) => {
       let code = generateCode();
       while (lobbies.has(code)) code = generateCode();
 
@@ -181,7 +206,7 @@ export function registerSocketHandlers(io: IOServer) {
       const lobby: LobbyState = {
         code,
         hostUserId: user.userId,
-        settings: { mode: settings.mode ?? 'CLASSIC', timer: settings.timer ?? '60', maxPlayers: settings.maxPlayers ?? 8 },
+        settings: { mode: settings.mode ?? 'CLASSIC', timer: settings.timer ?? '60', maxPlayers: settings.maxPlayers ?? 8, powerUps: settings.powerUps ?? false },
         players: [player],
         status: 'waiting',
       };
@@ -320,6 +345,8 @@ export function registerSocketHandlers(io: IOServer) {
         round: 1,
         timerEndsAt: timerSec ? Date.now() + timerSec * 1000 : null,
         avoidPenaltyTeam: null,
+        powerUpsEnabled: lobby.settings.powerUps,
+        doubleClueTeam: null,
       };
       games.set(code, game);
       broadcastLobby(io, code);
@@ -328,7 +355,7 @@ export function registerSocketHandlers(io: IOServer) {
     });
 
     // ─── GAME: CLUE ──────────────────────────────────────────────────────────
-    socket.on('game:clue', ({ word, number: num }: { word: string; number: number }) => {
+    socket.on('game:clue', ({ word, number: num, word2 }: { word: string; number: number; word2?: string }) => {
       const code = socketToRoom.get(socket.id);
       if (!code) return;
       const game = games.get(code);
@@ -337,11 +364,50 @@ export function registerSocketHandlers(io: IOServer) {
       const player = lobby.players.find(p => p.socketId === socket.id);
       if (!player || player.role !== 'spymaster' || player.team !== game.currentTurn) return;
       if (game.phase !== 'giving-clue') return;
+      if (!word || /\s/.test(word.trim())) return;
+      const validWord2 = (word2 && !(/\s/.test(word2.trim())) && game.doubleClueTeam === player.team)
+        ? word2.trim() : undefined;
       const timerSec = getTimerSeconds(lobby.settings.timer);
-      const afterClue = applyClue(game, word, num, timerSec);
+      const afterClue = applyClue(game, word, num, timerSec, validWord2);
       games.set(code, afterClue);
       broadcastGame(io, code);
       if (afterClue.timerEndsAt) scheduleTimer(io, code, afterClue.timerEndsAt);
+    });
+
+    // ─── GAME: POWER-UP ──────────────────────────────────────────────────────
+    socket.on('game:powerup', ({ type }: { type: string }) => {
+      const code = socketToRoom.get(socket.id);
+      if (!code) return;
+      const game = games.get(code);
+      const lobby = lobbies.get(code);
+      if (!game || !lobby) return;
+      if (!game.powerUpsEnabled || game.phase === 'over') return;
+
+      const player = lobby.players.find(p => p.socketId === socket.id);
+      if (!player || player.role === 'spectator' || !player.team) return;
+
+      const validTypes: PowerUpType[] = ['REVEAL_FRIENDLY', 'STEAL_NEUTRAL', 'DOUBLE_CLUE', 'REVEAL_NEUTRAL', 'REMOVE_AVOID'];
+      if (!validTypes.includes(type as PowerUpType)) return;
+
+      const price = POWER_UP_PRICES[type as PowerUpType];
+      const dbUser = db.getUserById(player.userId);
+      if (!dbUser || dbUser.coins < price) { socket.emit('lobby:error', 'Not enough coins'); return; }
+
+      const newCoins = db.deductCoins(player.userId, price);
+      player.coins = newCoins;
+      const newGame = applyPowerUp(game, type as PowerUpType, player.team);
+      games.set(code, newGame);
+
+      if (newGame.winner) {
+        const winnerPlayers = lobby.players.filter(p => p.team === newGame.winner);
+        for (const wp of winnerPlayers) {
+          try { wp.coins = db.addCoins(wp.userId, 50); } catch { /* ignore */ }
+        }
+      }
+
+      broadcastLobby(io, code);
+      broadcastGame(io, code);
+      socket.emit('user:coins', newCoins);
     });
 
     // ─── GAME: GUESS ─────────────────────────────────────────────────────────
@@ -360,9 +426,11 @@ export function registerSocketHandlers(io: IOServer) {
       if (newState.winner) {
         const winnerPlayers = lobby.players.filter(p => p.team === newState.winner);
         for (const wp of winnerPlayers) {
-          try { db.addCoins(wp.userId, 50); } catch { /* ignore if user disconnected */ }
+          try { wp.coins = db.addCoins(wp.userId, 50); } catch { /* ignore if user disconnected */ }
         }
+        broadcastLobby(io, code);
       }
+      clearHovers(io, code, lobby);
       broadcastGame(io, code);
       // Schedule timer only when timerEndsAt was reset (turn changed)
       if (newState.timerEndsAt && newState.timerEndsAt !== game.timerEndsAt) {
@@ -383,8 +451,25 @@ export function registerSocketHandlers(io: IOServer) {
       const timerSec = getTimerSeconds(lobby.settings.timer);
       const afterEndTurn = applyEndTurn(game, timerSec);
       games.set(code, afterEndTurn);
+      clearHovers(io, code, lobby);
       broadcastGame(io, code);
       if (afterEndTurn.timerEndsAt) scheduleTimer(io, code, afterEndTurn.timerEndsAt);
+    });
+
+    // ─── GAME: HOVER ─────────────────────────────────────────────────────────
+    socket.on('game:hover', ({ indices }: { indices: number[] }) => {
+      const code = socketToRoom.get(socket.id);
+      if (!code) return;
+      const lobby = lobbies.get(code);
+      if (!lobby) return;
+      const player = lobby.players.find(p => p.socketId === socket.id);
+      if (!player) return;
+
+      if (!cardHovers.has(code)) cardHovers.set(code, new Map());
+      const roomHovers = cardHovers.get(code)!;
+      if (indices.length === 0) roomHovers.delete(player.userId);
+      else roomHovers.set(player.userId, new Set(indices));
+      broadcastHovers(io, code, lobby);
     });
 
     // ─── GAME: RETURN TO LOBBY ───────────────────────────────────────────────
@@ -396,6 +481,7 @@ export function registerSocketHandlers(io: IOServer) {
       if (lobby.hostUserId !== user.userId) return; // host only
       games.delete(code);
       gameSpectatorSlots.delete(code);
+      cardHovers.delete(code);
       lobby.status = 'waiting';
       // Remove spectators and clear past-player records
       lobby.players = lobby.players.filter(p => p.role !== 'spectator');
@@ -450,8 +536,9 @@ export function registerSocketHandlers(io: IOServer) {
         disconnectTimers.delete(timerKey);
         const l = lobbies.get(code);
         if (!l) return;
+        cardHovers.get(code)?.delete(player.userId);
         l.players = l.players.filter(p => p.userId !== player.userId);
-        if (l.players.length === 0) { lobbies.delete(code); games.delete(code); return; }
+        if (l.players.length === 0) { lobbies.delete(code); games.delete(code); cardHovers.delete(code); return; }
         if (!l.players.some(p => p.userId === l.hostUserId)) l.hostUserId = l.players[0].userId;
         broadcastLobby(io, code);
       }, 60_000);
@@ -471,6 +558,9 @@ function handleLeave(socket: Socket, io: IOServer) {
 
   const player = lobby.players.find(p => p.socketId === socket.id);
   if (player) {
+    // Clear any hover this player had
+    cardHovers.get(code)?.delete(player.userId);
+
     // Cancel any pending disconnect timer for this player
     const timerKey = `${player.userId}:${code}`;
     const pending = disconnectTimers.get(timerKey);
@@ -488,6 +578,7 @@ function handleLeave(socket: Socket, io: IOServer) {
     lobbies.delete(code);
     games.delete(code);
     gameSpectatorSlots.delete(code);
+    cardHovers.delete(code);
     return;
   }
 

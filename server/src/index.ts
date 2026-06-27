@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server as IOServer } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
 import authRouter from './routes/auth';
 import shopRouter from './routes/shop';
 import { registerSocketHandlers } from './socket/handlers';
@@ -19,6 +20,11 @@ app.use('/api/auth', authRouter);
 app.use('/api/shop', shopRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+// Serve the built Vite client when not in dev mode
+const clientDist = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDist));
+app.get('*', (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
 
 registerSocketHandlers(io);
 

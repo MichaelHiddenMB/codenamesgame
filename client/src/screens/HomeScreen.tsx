@@ -54,7 +54,7 @@ export function HomeScreen() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 22, borderBottom: '2px solid #2c2319' }}>
             <Logo size="md" />
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }} onClick={() => setShowProfile(true)}>
-              <PfpAvatar size={38} />
+              <PfpAvatar size={38} avatarId={user?.equippedAvatarId} />
               <div style={{ lineHeight: 1.4 }}>
                 <div style={{ fontSize: 14, color: '#f3e9d6', fontWeight: 700 }}>{user?.username.toUpperCase()}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

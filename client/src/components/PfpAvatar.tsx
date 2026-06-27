@@ -1,21 +1,24 @@
 import React from 'react';
+import { avatarUrls } from '../avatarMap';
 
 interface PfpAvatarProps {
   size?: number;
   goldRing?: boolean;
-  label?: string;
+  avatarId?: number;
 }
 
-export function PfpAvatar({ size = 38, goldRing = false, label }: PfpAvatarProps) {
+export function PfpAvatar({ size = 38, goldRing = false, avatarId }: PfpAvatarProps) {
+  const src = avatarId ? avatarUrls[avatarId] : undefined;
   return (
     <div style={{
       width: size,
       height: size,
       borderRadius: '50%',
       flexShrink: 0,
-      background: 'repeating-linear-gradient(45deg, #2c2319 0 5px, #241c14 5px 10px)',
+      background: src ? 'transparent' : 'repeating-linear-gradient(45deg, #2c2319 0 5px, #241c14 5px 10px)',
       border: goldRing ? '3px solid #e2a93b' : '1px solid #3a2e22',
       boxShadow: goldRing ? '0 0 0 4px rgba(226,169,59,.14)' : 'none',
+      overflow: 'hidden',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -24,7 +27,7 @@ export function PfpAvatar({ size = 38, goldRing = false, label }: PfpAvatarProps
       fontFamily: 'Space Mono, monospace',
       userSelect: 'none',
     }}>
-      {label ?? 'PFP'}
+      {src && <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
     </div>
   );
 }

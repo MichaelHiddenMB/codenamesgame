@@ -2,7 +2,8 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
-const SERVER_URL = (typeof window !== 'undefined' && window.location.port === '5173')
+const DEV_PORTS = ['5173', '5174', '5175'];
+const SERVER_URL = (typeof window !== 'undefined' && DEV_PORTS.includes(window.location.port))
   ? 'http://localhost:3001'
   : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001');
 

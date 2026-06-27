@@ -6,14 +6,15 @@ interface GameContextValue {
   lobby: LobbyState | null;
   game: GameState | null;
   myRole: { team: 'rust' | 'teal' | null; role: 'spymaster' | 'operative' | 'spectator' } | null;
-  createLobby: (mode: GameMode, timer: TimerOption, maxPlayers: number) => void;
+  createLobby: (mode: GameMode, timer: TimerOption, maxPlayers: number, powerUps: boolean) => void;
   joinLobby: (code: string) => void;
   leaveLobby: () => void;
   returnToLobby: () => void;
   switchTeam: (team: 'rust' | 'teal') => void;
   setSpymaster: (userId: number) => void;
   startGame: () => void;
-  submitClue: (word: string, number: number) => void;
+  submitClue: (word: string, number: number, word2?: string) => void;
+  buyPowerUp: (type: string) => void;
   guessCard: (index: number) => void;
   endTurn: () => void;
   broadcastAvatar: (avatarId: number) => void;
@@ -46,9 +47,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setGame(g);
       if (g.winner) {
         setLobby(prev => prev ? { ...prev, status: 'in-game' } : prev);
-        refreshUser(); // update coin balance for winners
+        refreshUser();
       }
     };
+    const onCoins = () => refreshUser(); // power-up purchase deducted coins
 
     socket.on('lobby:created',  onCreated);
     socket.on('lobby:joined',   onJoined);
@@ -56,6 +58,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     socket.on('lobby:error',    onError);
     socket.on('lobby:returned', onReturned);
     socket.on('game:update',    onGame);
+    socket.on('user:coins',     onCoins);
 
     return () => {
       socket.off('lobby:created',  onCreated);
@@ -64,6 +67,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       socket.off('lobby:error',    onError);
       socket.off('lobby:returned', onReturned);
       socket.off('game:update',    onGame);
+      socket.off('user:coins',     onCoins);
     };
   }, [socket, refreshUser]);
 
@@ -72,14 +76,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     socket.emit(event, ...args);
   }, [socket]);
 
-  const createLobby   = useCallback((mode: GameMode, timer: TimerOption, maxPlayers: number) =>
-    emit('lobby:create', { mode, timer, maxPlayers }), [emit]);
+  const createLobby   = useCallback((mode: GameMode, timer: TimerOption, maxPlayers: number, powerUps: boolean) =>
+    emit('lobby:create', { mode, timer, maxPlayers, powerUps }), [emit]);
 
   const joinLobby     = useCallback((code: string) => emit('lobby:join', code), [emit]);
   const switchTeam    = useCallback((team: 'rust' | 'teal') => emit('lobby:team', team), [emit]);
   const setSpymaster  = useCallback((userId: number) => emit('lobby:spymaster', userId), [emit]);
   const startGame     = useCallback(() => emit('lobby:start'), [emit]);
-  const submitClue    = useCallback((word: string, number: number) => emit('game:clue', { word, number }), [emit]);
+  const submitClue    = useCallback((word: string, number: number, word2?: string) => emit('game:clue', { word, number, word2 }), [emit]);
+  const buyPowerUp    = useCallback((type: string) => emit('game:powerup', { type }), [emit]);
   const guessCard     = useCallback((index: number) => emit('game:guess', index), [emit]);
   const endTurn       = useCallback(() => emit('game:end-turn'), [emit]);
   const broadcastAvatar = useCallback((avatarId: number) => emit('player:avatar', avatarId), [emit]);
@@ -99,7 +104,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       lobby, game, myRole, lobbyError, clearLobbyError,
       createLobby, joinLobby, leaveLobby, returnToLobby, goSpectator,
       switchTeam, setSpymaster, startGame, submitClue, guessCard,
-      endTurn, broadcastAvatar,
+      endTurn, broadcastAvatar, buyPowerUp,
     }}>
       {children}
     </GameContext.Provider>

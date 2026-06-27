@@ -20,6 +20,7 @@ export interface Card {
 
 export interface Clue {
   word: string;
+  word2?: string;
   number: number;
   team: Team;
 }
@@ -28,6 +29,7 @@ export interface Player {
   userId: number;
   username: string;
   equippedAvatarId: number;
+  coins: number;
   team: Team | null;
   role: 'spymaster' | 'operative' | 'spectator';
 }
@@ -36,6 +38,7 @@ export interface LobbySettings {
   mode: GameMode;
   timer: TimerOption;
   maxPlayers: number;
+  powerUps: boolean;
 }
 
 export interface LobbyState {
@@ -59,6 +62,8 @@ export interface GameState {
   round: number;
   timerEndsAt: number | null;
   avoidPenaltyTeam: Team | null;
+  powerUpsEnabled: boolean;
+  doubleClueTeam: Team | null;
 }
 
 export interface AvatarItem {

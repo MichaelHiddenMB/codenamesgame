@@ -5,17 +5,23 @@ import { GoldButton } from '../components/GoldButton';
 import { PfpAvatar } from '../components/PfpAvatar';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardTeam } from '../types';
+import { Card, CardTeam, Clue } from '../types';
 
 export function GameBoardScreen() {
   const navigate = useNavigate();
-  const { lobby, game, myRole, submitClue, guessCard, endTurn, leaveLobby, returnToLobby } = useGame();
-  const { user } = useAuth();
+  const { lobby, game, myRole, submitClue, guessCard, endTurn, leaveLobby, returnToLobby, buyPowerUp } = useGame();
+  const { user, socket } = useAuth();
   const [clueWord, setClueWord] = useState('');
+  const [clueWord2, setClueWord2] = useState('');
   const [clueNumber, setClueNumber] = useState(1);
   const [reconnectReady, setReconnectReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [pendingCards, setPendingCards] = useState<number[]>([]);
+  const [allHovers, setAllHovers] = useState<{ userId: number; username: string; cardIndices: number[] }[]>([]);
+  const [flashClue, setFlashClue] = useState<Clue | null>(null);
+  const [flashVisible, setFlashVisible] = useState(false);
   const canEndTurnRef = useRef(false);
+  const prevClueKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setReconnectReady(true), 2500);
@@ -25,6 +31,33 @@ export function GameBoardScreen() {
   useEffect(() => {
     if (reconnectReady && !lobby && !game) navigate('/');
   }, [lobby, game, navigate, reconnectReady]);
+
+  // Listen for hover updates from other players
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (hovers: { userId: number; username: string; cardIndices: number[] }[]) => setAllHovers(hovers);
+    socket.on('game:hovers', handler);
+    return () => { socket.off('game:hovers', handler); };
+  }, [socket]);
+
+  // Clear local hover selections when it's no longer our turn to guess
+  useEffect(() => {
+    setPendingCards([]);
+  }, [game?.currentTurn, game?.phase]);
+
+  // Flash new clue in the center of the screen
+  useEffect(() => {
+    if (!game?.activeClue) return;
+    const key = `${game.round}-${game.activeClue.word}-${game.activeClue.team}`;
+    if (prevClueKeyRef.current === key) return;
+    prevClueKeyRef.current = key;
+
+    setFlashClue(game.activeClue);
+    setFlashVisible(true);
+    const fadeOut = setTimeout(() => setFlashVisible(false), 2400);
+    const clear   = setTimeout(() => setFlashClue(null), 3000);
+    return () => { clearTimeout(fadeOut); clearTimeout(clear); };
+  }, [game?.activeClue, game?.round]);
 
   useEffect(() => {
     if (lobby && !game && lobby.status === 'waiting') navigate('/lobby');
@@ -64,10 +97,16 @@ export function GameBoardScreen() {
   const turnColor = game.currentTurn === 'rust' ? '#d65a37' : '#2f9c8f';
   const turnLabel = game.currentTurn === 'rust' ? 'RUST' : 'TEAL';
 
+  const hasDoubleClue = canGiveClue && game?.doubleClueTeam === myRole?.team;
+
   const handleSubmitClue = () => {
-    if (!clueWord.trim()) return;
-    submitClue(clueWord.trim(), clueNumber);
+    const word = clueWord.trim();
+    if (!word || /\s/.test(word)) return;
+    const word2 = hasDoubleClue ? clueWord2.trim() : undefined;
+    if (word2 && /\s/.test(word2)) return;
+    submitClue(word, clueNumber, word2 || undefined);
     setClueWord('');
+    setClueWord2('');
   };
 
   const handleLeave = () => {
@@ -221,16 +260,37 @@ export function GameBoardScreen() {
             {/* board */}
             <div style={{ flex: 1, background: '#15110c', border: '3px solid #3a2e22', borderRadius: 12, padding: 16, boxShadow: 'inset 0 0 50px rgba(0,0,0,.6)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5em', fontSize: 17 }}>
-                {game.board.map((card, i) => (
-                  <GameCard
-                    key={i}
-                    card={card}
-                    index={i}
-                    isSpymaster={isSpymaster}
-                    canGuess={canGuess}
-                    onGuess={guessCard}
-                  />
-                ))}
+                {game.board.map((card, i) => {
+                  const remoteHovers = allHovers
+                    .filter(h => h.cardIndices.includes(i) && h.userId !== user.userId)
+                    .map(h => h.username);
+                  return (
+                    <GameCard
+                      key={i}
+                      card={card}
+                      index={i}
+                      isSpymaster={isSpymaster}
+                      canGuess={canGuess}
+                      isLocalHover={pendingCards.includes(i)}
+                      remoteHovers={remoteHovers}
+                      onGuess={(idx) => {
+                        if (!canGuess || card.revealed) return;
+                        if (pendingCards.includes(idx)) {
+                          // Second click on a selected card — confirm guess
+                          guessCard(idx);
+                          const next = pendingCards.filter(c => c !== idx);
+                          setPendingCards(next);
+                          socket?.emit('game:hover', { indices: next });
+                        } else {
+                          // First click — add to hovered set
+                          const next = [...pendingCards, idx];
+                          setPendingCards(next);
+                          socket?.emit('game:hover', { indices: next });
+                        }
+                      }}
+                    />
+                  );
+                })}
               </div>
             </div>
 
@@ -252,13 +312,20 @@ export function GameBoardScreen() {
             </div>
           ) : null; })()}
 
+          {/* power-ups panel */}
+          {game.powerUpsEnabled && myRole?.role !== 'spectator' && game.phase !== 'over' && (
+            <PowerUpPanel coins={user.coins} doubleClueTeam={game.doubleClueTeam} myTeam={myRole?.team ?? null} onBuy={buyPowerUp} />
+          )}
+
           {/* clue bar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 22, paddingTop: 20, borderTop: '2px solid #2c2319' }}>
             {/* current clue display */}
             {game.activeClue ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
                 <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#8c7c68' }}>CLUE</span>
-                <span style={{ fontWeight: 700, fontSize: 26, color: '#e2a93b', letterSpacing: 3 }}>{game.activeClue.word}</span>
+                <span style={{ fontWeight: 700, fontSize: 26, color: '#e2a93b', letterSpacing: 3 }}>
+                  {game.activeClue.word}{game.activeClue.word2 ? ` / ${game.activeClue.word2}` : ''}
+                </span>
                 <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: '#e2a93b' }}>×{game.activeClue.number}</span>
               </div>
             ) : (
@@ -290,12 +357,27 @@ export function GameBoardScreen() {
                     value={clueWord}
                     onChange={e => setClueWord(e.target.value.replace(/\s/g, ''))}
                     onKeyDown={e => e.key === 'Enter' && handleSubmitClue()}
-                    placeholder="one word clue…"
+                    placeholder="clue word…"
                     style={{
                       flex: 1, background: 'none', border: 'none', outline: 'none',
                       fontSize: 13, color: '#f3e9d6', fontFamily: 'Space Mono, monospace',
                     }}
                   />
+                  {hasDoubleClue && (
+                    <>
+                      <span style={{ color: '#3a2e22', fontSize: 16 }}>/</span>
+                      <input
+                        value={clueWord2}
+                        onChange={e => setClueWord2(e.target.value.replace(/\s/g, ''))}
+                        onKeyDown={e => e.key === 'Enter' && handleSubmitClue()}
+                        placeholder="2nd word…"
+                        style={{
+                          flex: 1, background: 'none', border: 'none', outline: 'none',
+                          fontSize: 13, color: '#e2a93b', fontFamily: 'Space Mono, monospace',
+                        }}
+                      />
+                    </>
+                  )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <button onClick={() => setClueNumber(n => Math.max(1, n - 1))} style={{ color: '#8c7c68', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '2px 6px' }}>−</button>
                     <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: '#e2a93b', minWidth: 20, textAlign: 'center' }}>{clueNumber}</span>
@@ -318,11 +400,86 @@ export function GameBoardScreen() {
         </div>
       </div>
     </div>
+
+    {/* clue flash overlay */}
+    {flashClue && (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: flashVisible ? 'rgba(8,6,4,.55)' : 'rgba(8,6,4,0)',
+        transition: 'background 0.35s',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          background: '#1b1611',
+          border: `3px solid ${flashClue.team === 'rust' ? '#d65a37' : '#2f9c8f'}`,
+          borderRadius: 18,
+          padding: '38px 60px',
+          textAlign: 'center',
+          boxShadow: flashClue.team === 'rust'
+            ? '0 0 80px rgba(214,90,55,.45)'
+            : '0 0 80px rgba(47,156,143,.45)',
+          opacity: flashVisible ? 1 : 0,
+          transform: flashVisible ? 'scale(1) translateY(0)' : 'scale(0.85) translateY(24px)',
+          transition: 'opacity 0.35s, transform 0.35s',
+        }}>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color: flashClue.team === 'rust' ? '#d65a37' : '#2f9c8f', letterSpacing: 2, marginBottom: 20 }}>
+            NEW CLUE
+          </div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 'clamp(28px, 5vw, 52px)', color: '#e2a93b', letterSpacing: 4, lineHeight: 1.2 }}>
+            {flashClue.word}{flashClue.word2 ? ` / ${flashClue.word2}` : ''}
+          </div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 22, color: '#f3e9d6', marginTop: 20 }}>
+            ×{flashClue.number}
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 }
 
-function TeamRail({ color, label, players }: { color: string; label: string; players: Array<{ username: string; role: string }> }) {
+const POWER_UPS = [
+  { type: 'REVEAL_NEUTRAL',  name: 'SCOUT',       price: 100, desc: 'Reveal a neutral word for everyone' },
+  { type: 'REVEAL_FRIENDLY', name: 'ILLUMINATE',   price: 150, desc: 'Reveal one of your team\'s words' },
+  { type: 'STEAL_NEUTRAL',   name: 'INFILTRATE',   price: 200, desc: 'Turn a neutral word into an opponent word' },
+  { type: 'DOUBLE_CLUE',     name: 'DUAL SIGNAL',  price: 200, desc: 'Spymaster gives two-word clue this turn' },
+  { type: 'REMOVE_AVOID',    name: 'DEFUSE',       price: 200, desc: 'Remove the black word from the board' },
+] as const;
+
+function PowerUpPanel({ coins, doubleClueTeam, myTeam, onBuy }: {
+  coins: number;
+  doubleClueTeam: 'rust' | 'teal' | null;
+  myTeam: 'rust' | 'teal' | null;
+  onBuy: (type: string) => void;
+}) {
+  return (
+    <div style={{ marginTop: 16, padding: '12px 14px', background: '#15110c', border: '1px solid #2c2319', borderRadius: 8 }}>
+      <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#5f5547', letterSpacing: 1, marginBottom: 10 }}>POWER-UPS</div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {POWER_UPS.map(pu => {
+          const canAfford = coins >= pu.price;
+          const alreadyPending = pu.type === 'DOUBLE_CLUE' && doubleClueTeam === myTeam;
+          const disabled = !canAfford || alreadyPending;
+          return (
+            <button key={pu.type} onClick={() => !disabled && onBuy(pu.type)} style={{
+              flex: 1, background: disabled ? '#100d0a' : '#1b1611',
+              border: `1px solid ${disabled ? '#2c2319' : '#4a3e30'}`,
+              borderRadius: 8, padding: '8px 10px', cursor: disabled ? 'default' : 'pointer',
+              opacity: disabled ? 0.45 : 1, textAlign: 'left',
+            }}>
+              <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#e2a93b', lineHeight: 1.6 }}>{pu.name}</div>
+              <div style={{ fontSize: 10, color: '#7c7163', lineHeight: 1.4, marginTop: 4 }}>{pu.desc}</div>
+              <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: canAfford ? '#e2a93b' : '#5f5547', marginTop: 6 }}>{pu.price}¢</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TeamRail({ color, label, players }: { color: string; label: string; players: Array<{ username: string; role: string; equippedAvatarId: number; coins: number }> }) {
   return (
     <div style={{ width: 158 }}>
       <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color, letterSpacing: 1, paddingBottom: 12, borderBottom: '2px solid #2c2319' }}>
@@ -330,13 +487,16 @@ function TeamRail({ color, label, players }: { color: string; label: string; pla
       </div>
       {players.map((p, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: '1px solid #241c14' }}>
-          <PfpAvatar size={36} />
+          <PfpAvatar size={36} avatarId={p.equippedAvatarId} />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 13, color: '#f3e9d6', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {p.username.toUpperCase()}
             </div>
             <div style={{ fontSize: 9, color: p.role === 'spymaster' ? '#e2a93b' : '#8c7c68', letterSpacing: 0.5 }}>
               {p.role === 'spymaster' ? '★ SPYMASTER' : 'operative'}
+            </div>
+            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#e2a93b', marginTop: 3 }}>
+              {p.coins}¢
             </div>
           </div>
         </div>
@@ -358,11 +518,13 @@ const CARD_SUNKEN_EDGE: Record<string, string> = {
   rust: '#3d150b', teal: '#0c2723', neutral: '#332b1d', avoid: '#0a0805', hidden: '#2c2319',
 };
 
-function GameCard({ card, index, isSpymaster, canGuess, onGuess }: {
+function GameCard({ card, index, isSpymaster, canGuess, isLocalHover, remoteHovers, onGuess }: {
   card: Card;
   index: number;
   isSpymaster: boolean;
   canGuess: boolean;
+  isLocalHover: boolean;
+  remoteHovers: string[];
   onGuess: (i: number) => void;
 }) {
   const team = card.team;
@@ -376,10 +538,14 @@ function GameCard({ card, index, isSpymaster, canGuess, onGuess }: {
     }
     : {
       background: CARD_BRIGHT[team] ?? '#e4d9c4',
-      border: `0.16em solid ${CARD_EDGE[team] ?? '#c8b99a'}`,
-      boxShadow: team === 'avoid'
-        ? '0 0.22em 0 rgba(0,0,0,.34), inset 0 0 0 0.16em #4a443d'
-        : '0 0.22em 0 rgba(0,0,0,.34)',
+      border: isLocalHover
+        ? '0.16em solid #e2a93b'
+        : `0.16em solid ${CARD_EDGE[team] ?? '#c8b99a'}`,
+      boxShadow: isLocalHover
+        ? '0 0 0 0.18em rgba(226,169,59,.55), 0 0.22em 0 rgba(0,0,0,.34)'
+        : team === 'avoid'
+          ? '0 0.22em 0 rgba(0,0,0,.34), inset 0 0 0 0.16em #4a443d'
+          : '0 0.22em 0 rgba(0,0,0,.34)',
     };
 
   const wordColor = card.revealed
@@ -391,7 +557,7 @@ function GameCard({ card, index, isSpymaster, canGuess, onGuess }: {
 
   return (
     <button
-      onClick={() => clickable && onGuess(index)}
+      onClick={() => onGuess(index)}
       disabled={!clickable}
       style={{
         ...faceStyle,
@@ -405,11 +571,28 @@ function GameCard({ card, index, isSpymaster, canGuess, onGuess }: {
         borderRadius: '0.32em',
         overflow: 'hidden',
         cursor: clickable ? 'pointer' : 'default',
-        transition: 'opacity 0.1s',
+        transition: 'box-shadow 0.1s, border-color 0.1s',
       }}
-      onMouseEnter={e => { if (clickable) e.currentTarget.style.opacity = '0.85'; }}
-      onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
     >
+      {/* remote hover chips */}
+      {remoteHovers.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '0.22em', left: '0.22em', right: '0.22em',
+          display: 'flex', gap: '0.18em', flexWrap: 'wrap',
+        }}>
+          {remoteHovers.map(name => (
+            <span key={name} style={{
+              fontFamily: 'Space Mono, monospace',
+              fontSize: '0.42em', fontWeight: 700,
+              background: 'rgba(226,169,59,.88)', color: '#1b1611',
+              borderRadius: '0.3em', padding: '0.2em 0.4em',
+              lineHeight: 1.2,
+            }}>
+              {name.slice(0, 8).toUpperCase()}
+            </span>
+          ))}
+        </div>
+      )}
       <span style={{
         fontFamily: 'Space Mono, monospace',
         fontWeight: 700,

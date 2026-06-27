@@ -6,6 +6,7 @@ import { GoldButton } from '../components/GoldButton';
 import { api } from '../api';
 import { AvatarItem } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { avatarUrls } from '../avatarMap';
 
 type Filter = 'ALL' | 'OWNED' | 'LOCKED';
 
@@ -147,7 +148,7 @@ function AvatarCard({ item, userCoins, buying, onBuy, onEquip }: {
         borderBottom: '2px solid #2c2319',
         filter: locked ? 'grayscale(1) brightness(.7)' : 'none',
       }}>
-        <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 10, color: '#6b6155' }}>PFP</span>
+        <img src={avatarUrls[item.id]} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         {item.equipped && (
           <span style={{
             position: 'absolute', top: 7, left: 7,

@@ -152,7 +152,7 @@ export function LobbyScreen() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {spectators.map(p => (
                 <div key={p.userId} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 11px', background: '#1b1611', border: '1px solid #3a2e22', borderRadius: 6 }}>
-                  <PfpAvatar size={20} />
+                  <PfpAvatar size={20} avatarId={p.equippedAvatarId} />
                   <span style={{ fontSize: 12, color: '#8c7c68', fontWeight: 700 }}>{p.username.toUpperCase()}</span>
                   {p.userId === user.userId && <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#5f5547' }}>YOU</span>}
                 </div>
@@ -285,7 +285,7 @@ function PlayerRow({ player, myUserId, isSpymaster, onSetSpymaster, teamAccent, 
         title={isMe ? 'Change avatar' : undefined}
         style={{ position: 'relative', cursor: isMe ? 'pointer' : 'default', flexShrink: 0 }}
       >
-        <PfpAvatar size={32} />
+        <PfpAvatar size={32} avatarId={player.equippedAvatarId} />
         {isMe && (
           <div style={{
             position: 'absolute', inset: 0, borderRadius: 6,
@@ -299,12 +299,17 @@ function PlayerRow({ player, myUserId, isSpymaster, onSetSpymaster, teamAccent, 
           >EDIT</div>
         )}
       </div>
-      <span style={{ flex: 1, fontSize: 14, color: '#f3e9d6', fontWeight: 700 }}>
-        {player.username.toUpperCase()}
-        {isMe && (
-          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: teamAccent ?? '#2f9c8f', marginLeft: 6 }}>YOU</span>
-        )}
-      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14, color: '#f3e9d6', fontWeight: 700 }}>
+          {player.username.toUpperCase()}
+          {isMe && (
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: teamAccent ?? '#2f9c8f', marginLeft: 6 }}>YOU</span>
+          )}
+        </div>
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#e2a93b', marginTop: 3 }}>
+          {player.coins}¢
+        </div>
+      </div>
       {isSpymaster ? (
         <span style={{ fontSize: 14, color: '#e2a93b' }}>★</span>
       ) : (

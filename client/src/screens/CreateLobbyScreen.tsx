@@ -15,13 +15,14 @@ export function CreateLobbyScreen() {
   const [mode, setMode] = useState<GameMode>('CLASSIC');
   const [timer, setTimer] = useState<TimerOption>('60');
   const [maxPlayers, setMaxPlayers] = useState(8);
+  const [powerUps, setPowerUps] = useState(false);
 
   React.useEffect(() => {
     if (lobby) navigate('/lobby');
   }, [lobby, navigate]);
 
   const handleCreate = () => {
-    createLobby(mode, timer, maxPlayers);
+    createLobby(mode, timer, maxPlayers, powerUps);
   };
 
   const labelStyle: React.CSSProperties = {
@@ -129,6 +130,39 @@ export function CreateLobbyScreen() {
             </div>
             <p style={{ margin: '12px 0 0', fontSize: 12, color: '#6b6155' }}>Total agents allowed across both teams (4–16).</p>
           </div>
+        </div>
+
+        {/* POWER-UPS */}
+        <div style={{ marginTop: 30 }}>
+          <div style={labelStyle}>POWER-UPS</div>
+          <button onClick={() => setPowerUps(p => !p)} style={{
+            display: 'flex', alignItems: 'center', gap: 16, width: '100%',
+            background: powerUps ? '#221a14' : '#15110c',
+            border: `2px solid ${powerUps ? '#e2a93b' : '#3a2e22'}`,
+            boxShadow: powerUps ? '0 0 0 3px rgba(226,169,59,.12)' : 'none',
+            borderRadius: 12, padding: '18px 20px', cursor: 'pointer', textAlign: 'left',
+          }}>
+            <div style={{
+              width: 42, height: 24, borderRadius: 12, flexShrink: 0,
+              background: powerUps ? '#e2a93b' : '#3a2e22',
+              position: 'relative', transition: 'background 0.2s',
+            }}>
+              <div style={{
+                position: 'absolute', top: 3, left: powerUps ? 21 : 3,
+                width: 18, height: 18, borderRadius: '50%',
+                background: powerUps ? '#1b1611' : '#6b6155',
+                transition: 'left 0.2s',
+              }} />
+            </div>
+            <div>
+              <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: powerUps ? '#e2a93b' : '#f3e9d6' }}>
+                {powerUps ? 'ENABLED' : 'DISABLED'}
+              </div>
+              <p style={{ margin: '8px 0 0', fontSize: 12, color: '#6b6155', lineHeight: 1.5 }}>
+                Players can spend coins in-game to reveal words, steal neutrals, upgrade clues, and more.
+              </p>
+            </div>
+          </button>
         </div>
 
         {/* create bar */}

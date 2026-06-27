@@ -51,9 +51,9 @@ export const db = {
       id: data.nextUserId++,
       username,
       password_hash,
-      coins: 200,
-      equipped_avatar_id: 1,
-      owned_avatar_ids: [1, 2],
+      coins: 100,
+      equipped_avatar_id: 0,
+      owned_avatar_ids: [],
       created_at: new Date().toISOString(),
     };
     data.users.push(user);
