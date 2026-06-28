@@ -10,12 +10,12 @@ exports.applyPowerUp = applyPowerUp;
 exports.applyEndTurn = applyEndTurn;
 const words_1 = require("./words");
 exports.POWER_UP_PRICES = {
-    REVEAL_NEUTRAL: 100,
-    REVEAL_FRIENDLY: 150,
-    STEAL_NEUTRAL: 200,
-    DOUBLE_CLUE: 200,
-    REMOVE_AVOID: 200,
-    REROLL_BOARD: 350,
+    REVEAL_NEUTRAL: 50,
+    REVEAL_FRIENDLY: 75,
+    STEAL_NEUTRAL: 100,
+    DOUBLE_CLUE: 100,
+    REMOVE_AVOID: 100,
+    REROLL_BOARD: 100,
 };
 function shuffle(arr) {
     const a = [...arr];
