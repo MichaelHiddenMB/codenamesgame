@@ -10,8 +10,11 @@ interface GameContextValue {
   joinLobby: (code: string) => void;
   leaveLobby: () => void;
   returnToLobby: () => void;
+  dismissGame: () => void;
   switchTeam: (team: 'rust' | 'teal') => void;
   setSpymaster: (userId: number) => void;
+  transferHost: (userId: number) => void;
+  randomizeTeams: () => void;
   startGame: () => void;
   submitClue: (word: string, number: number, word2?: string) => void;
   buyPowerUp: (type: string) => void;
@@ -42,7 +45,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const onJoined   = ({ lobby: l }: { lobby: LobbyState }) => setLobby(l);
     const onUpdate   = (l: LobbyState) => setLobby(l);
     const onError    = (msg: string)   => setLobbyError(msg);
-    const onReturned = (l: LobbyState) => { setLobby(l); setGame(null); };
+    const onReturned = (l: LobbyState) => setLobby(l);
     const onGame     = (g: GameState)  => {
       setGame(g);
       if (g.winner) {
@@ -89,6 +92,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const endTurn       = useCallback(() => emit('game:end-turn'), [emit]);
   const broadcastAvatar = useCallback((avatarId: number) => emit('player:avatar', avatarId), [emit]);
   const returnToLobby  = useCallback(() => emit('game:return-lobby'), [emit]);
+  const dismissGame    = useCallback(() => setGame(null), []);
+  const transferHost   = useCallback((userId: number) => emit('lobby:transfer-host', userId), [emit]);
+  const randomizeTeams = useCallback(() => emit('lobby:randomize'), [emit]);
   const goSpectator    = useCallback(() => emit('lobby:spectate'), [emit]);
 
   const leaveLobby = useCallback(() => {
@@ -102,8 +108,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   return (
     <GameContext.Provider value={{
       lobby, game, myRole, lobbyError, clearLobbyError,
-      createLobby, joinLobby, leaveLobby, returnToLobby, goSpectator,
-      switchTeam, setSpymaster, startGame, submitClue, guessCard,
+      createLobby, joinLobby, leaveLobby, returnToLobby, dismissGame, goSpectator,
+      switchTeam, setSpymaster, transferHost, randomizeTeams, startGame, submitClue, guessCard,
       endTurn, broadcastAvatar, buyPowerUp,
     }}>
       {children}

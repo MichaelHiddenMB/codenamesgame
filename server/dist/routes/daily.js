@@ -1,0 +1,396 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
+const db_1 = require("../db");
+const router = (0, express_1.Router)();
+const ADMIN_USERNAME = 'hiddenmb';
+function todayDate() {
+    return new Date().toISOString().split('T')[0];
+}
+const sessions = new Map();
+function sessionKey(userId, date) {
+    return `${userId}:${date}`;
+}
+function requireAdmin(req, res) {
+    const user = req.user;
+    if (user.username.toLowerCase() !== ADMIN_USERNAME.toLowerCase()) {
+        res.status(403).json({ error: 'Admin only' });
+        return false;
+    }
+    return true;
+}
+// ── Public board ─────────────────────────────────────────────────────────────
+// GET /api/daily/today  — returns words + clues (no card types)
+router.get('/today', auth_1.requireAuth, (req, res) => {
+    const date = todayDate();
+    const board = db_1.db.getDailyBoardByDate(date);
+    if (!board) {
+        res.json({ date, board: null });
+        return;
+    }
+    res.json({
+        date,
+        board: {
+            id: board.id,
+            date: board.date,
+            cards: board.cards.map(c => ({ word: c.word })),
+            clues: board.clues,
+        },
+    });
+});
+// GET /api/daily/session  — return current session state (or completed result)
+router.get('/session', auth_1.requireAuth, (req, res) => {
+    const user = req.user;
+    const date = todayDate();
+    // Check if they already finished
+    const existing = db_1.db.getDailyResult(user.userId, date);
+    if (existing) {
+        res.json({ status: existing.solved ? 'won' : 'lost', result: existing, session: null });
+        return;
+    }
+    const key = sessionKey(user.userId, date);
+    const session = sessions.get(key);
+    if (!session) {
+        res.json({ status: 'not-started', session: null });
+        return;
+    }
+    res.json({ status: session.status, session: serializeSession(session) });
+});
+// POST /api/daily/start  — start or resume session
+router.post('/start', auth_1.requireAuth, (req, res) => {
+    const user = req.user;
+    const date = todayDate();
+    if (db_1.db.getDailyResult(user.userId, date)) {
+        res.status(400).json({ error: 'Already completed today\'s puzzle' });
+        return;
+    }
+    const board = db_1.db.getDailyBoardByDate(date);
+    if (!board) {
+        res.status(404).json({ error: 'No daily puzzle for today' });
+        return;
+    }
+    const key = sessionKey(user.userId, date);
+    let session = sessions.get(key);
+    if (!session) {
+        const dbUser = db_1.db.getUserById(user.userId);
+        session = {
+            userId: user.userId,
+            username: user.username,
+            equippedAvatarId: dbUser?.equipped_avatar_id ?? 0,
+            date,
+            board,
+            currentRound: 0,
+            guessesThisRound: 0,
+            agentsFound: 0,
+            history: [],
+            roundHistory: [],
+            revealedIndices: [],
+            status: 'in-progress',
+        };
+        sessions.set(key, session);
+    }
+    res.json({ session: serializeSession(session) });
+});
+// POST /api/daily/guess  — guess a card by index
+router.post('/guess', auth_1.requireAuth, (req, res) => {
+    const user = req.user;
+    const date = todayDate();
+    const { cardIndex } = req.body;
+    if (typeof cardIndex !== 'number' || cardIndex < 0 || cardIndex > 11) {
+        res.status(400).json({ error: 'Invalid card index' });
+        return;
+    }
+    if (db_1.db.getDailyResult(user.userId, date)) {
+        res.status(400).json({ error: 'Already completed' });
+        return;
+    }
+    const key = sessionKey(user.userId, date);
+    const session = sessions.get(key);
+    if (!session || session.status !== 'in-progress') {
+        res.status(400).json({ error: 'No active session' });
+        return;
+    }
+    if (session.revealedIndices.includes(cardIndex)) {
+        res.status(400).json({ error: 'Card already revealed' });
+        return;
+    }
+    const clue = session.board.clues[session.currentRound];
+    const maxGuesses = clue.number + 1;
+    const card = session.board.cards[cardIndex];
+    const outcome = card.type; // 'agent' | 'neutral' | 'avoid'
+    session.revealedIndices.push(cardIndex);
+    session.roundHistory.push(outcome);
+    session.guessesThisRound += 1;
+    let roundOver = false;
+    let gameOver = false;
+    if (outcome === 'agent') {
+        session.agentsFound += 1;
+        const totalAgents = session.board.cards.filter(c => c.type === 'agent').length;
+        if (session.agentsFound >= totalAgents) {
+            // Win!
+            session.status = 'won';
+            gameOver = true;
+            roundOver = true;
+        }
+        else if (session.guessesThisRound >= maxGuesses) {
+            // Used all guesses for this round
+            roundOver = true;
+        }
+    }
+    else if (outcome === 'avoid') {
+        session.status = 'lost';
+        gameOver = true;
+        roundOver = true;
+    }
+    else {
+        // neutral — end round
+        roundOver = true;
+    }
+    if (roundOver && !gameOver) {
+        // Advance to next round
+        session.history.push([...session.roundHistory]);
+        session.roundHistory = [];
+        session.guessesThisRound = 0;
+        session.currentRound += 1;
+        if (session.currentRound >= session.board.clues.length) {
+            // No more clues — loss
+            session.status = 'lost';
+            gameOver = true;
+        }
+    }
+    if (gameOver) {
+        // Flush any remaining round history
+        if (session.roundHistory.length > 0) {
+            session.history.push([...session.roundHistory]);
+        }
+        const totalGuesses = session.history.flat().length;
+        const dbUser = db_1.db.getUserById(user.userId);
+        db_1.db.saveDailyResult({
+            date,
+            userId: user.userId,
+            username: user.username,
+            equippedAvatarId: dbUser?.equipped_avatar_id ?? 0,
+            solved: session.status === 'won',
+            totalGuesses,
+            guessHistory: session.history,
+            completedAt: new Date().toISOString(),
+        });
+        sessions.delete(key);
+    }
+    res.json({
+        outcome,
+        cardIndex,
+        roundOver,
+        gameOver,
+        status: session.status,
+        session: gameOver ? null : serializeSession(session),
+    });
+});
+// POST /api/daily/pass  — pass remaining guesses in current round
+router.post('/pass', auth_1.requireAuth, (req, res) => {
+    const user = req.user;
+    const date = todayDate();
+    if (db_1.db.getDailyResult(user.userId, date)) {
+        res.status(400).json({ error: 'Already completed' });
+        return;
+    }
+    const key = sessionKey(user.userId, date);
+    const session = sessions.get(key);
+    if (!session || session.status !== 'in-progress') {
+        res.status(400).json({ error: 'No active session' });
+        return;
+    }
+    // End round (pass)
+    session.history.push([...session.roundHistory]);
+    session.roundHistory = [];
+    session.guessesThisRound = 0;
+    session.currentRound += 1;
+    let gameOver = false;
+    if (session.currentRound >= session.board.clues.length) {
+        session.status = 'lost';
+        gameOver = true;
+        if (session.history.length > 0) {
+            // already pushed above
+        }
+        const totalGuesses = session.history.flat().length;
+        const dbUser = db_1.db.getUserById(user.userId);
+        db_1.db.saveDailyResult({
+            date,
+            userId: user.userId,
+            username: user.username,
+            equippedAvatarId: dbUser?.equipped_avatar_id ?? 0,
+            solved: false,
+            totalGuesses,
+            guessHistory: session.history,
+            completedAt: new Date().toISOString(),
+        });
+        sessions.delete(key);
+    }
+    res.json({
+        gameOver,
+        status: session.status,
+        session: gameOver ? null : serializeSession(session),
+    });
+});
+// GET /api/daily/reveal  — full board with types, only if user has completed today
+router.get('/reveal', auth_1.requireAuth, (req, res) => {
+    const user = req.user;
+    const date = todayDate();
+    const result = db_1.db.getDailyResult(user.userId, date);
+    if (!result) {
+        res.status(403).json({ error: 'Complete today\'s puzzle first' });
+        return;
+    }
+    const board = db_1.db.getDailyBoardByDate(date);
+    if (!board) {
+        res.status(404).json({ error: 'Board not found' });
+        return;
+    }
+    res.json({ cards: board.cards, clues: board.clues });
+});
+// GET /api/daily/leaderboard  — today's leaderboard
+router.get('/leaderboard', auth_1.requireAuth, (_req, res) => {
+    const date = todayDate();
+    const results = db_1.db.getDailyLeaderboard(date);
+    res.json({ date, results });
+});
+// GET /api/daily/result/:username  — get a player's result for today (for Wordle grid)
+router.get('/result/:username', auth_1.requireAuth, (req, res) => {
+    const date = todayDate();
+    const result = db_1.db.getDailyResultByUsername(req.params.username, date);
+    if (!result) {
+        res.status(404).json({ error: 'No result found' });
+        return;
+    }
+    res.json({ result });
+});
+// ── Admin endpoints ───────────────────────────────────────────────────────────
+// GET /api/daily/admin/boards
+router.get('/admin/boards', auth_1.requireAuth, (req, res) => {
+    if (!requireAdmin(req, res))
+        return;
+    const boards = db_1.db.getDailyBoards().sort((a, b) => (a.date < b.date ? 1 : -1));
+    res.json({ boards });
+});
+// POST /api/daily/admin/board
+router.post('/admin/board', auth_1.requireAuth, (req, res) => {
+    if (!requireAdmin(req, res))
+        return;
+    const { date, cards, clues } = req.body;
+    if (!date || !cards || !clues) {
+        res.status(400).json({ error: 'date, cards, and clues are required' });
+        return;
+    }
+    if (cards.length !== 12) {
+        res.status(400).json({ error: 'Exactly 12 cards required' });
+        return;
+    }
+    const agentCount = cards.filter(c => c.type === 'agent').length;
+    const avoidCount = cards.filter(c => c.type === 'avoid').length;
+    if (agentCount !== 5) {
+        res.status(400).json({ error: 'Exactly 5 agent cards required' });
+        return;
+    }
+    if (avoidCount !== 1) {
+        res.status(400).json({ error: 'Exactly 1 avoid card required' });
+        return;
+    }
+    if (clues.length < 1 || clues.length > 4) {
+        res.status(400).json({ error: '1–4 clues required' });
+        return;
+    }
+    if (db_1.db.getDailyBoardByDate(date)) {
+        res.status(400).json({ error: `A board for ${date} already exists` });
+        return;
+    }
+    const board = db_1.db.createDailyBoard(date, cards, clues);
+    res.status(201).json({ board });
+});
+// PUT /api/daily/admin/board/:id
+router.put('/admin/board/:id', auth_1.requireAuth, (req, res) => {
+    if (!requireAdmin(req, res))
+        return;
+    const id = parseInt(req.params.id, 10);
+    const { date, cards, clues } = req.body;
+    if (!date || !cards || !clues) {
+        res.status(400).json({ error: 'date, cards, and clues are required' });
+        return;
+    }
+    if (cards.length !== 12) {
+        res.status(400).json({ error: 'Exactly 12 cards required' });
+        return;
+    }
+    const agentCount = cards.filter(c => c.type === 'agent').length;
+    const avoidCount = cards.filter(c => c.type === 'avoid').length;
+    if (agentCount !== 5) {
+        res.status(400).json({ error: 'Exactly 5 agent cards required' });
+        return;
+    }
+    if (avoidCount !== 1) {
+        res.status(400).json({ error: 'Exactly 1 avoid card required' });
+        return;
+    }
+    if (clues.length < 1 || clues.length > 4) {
+        res.status(400).json({ error: '1–4 clues required' });
+        return;
+    }
+    const existing = db_1.db.getDailyBoardByDate(date);
+    if (existing && existing.id !== id) {
+        res.status(400).json({ error: `Another board for ${date} already exists` });
+        return;
+    }
+    const board = db_1.db.updateDailyBoard(id, date, cards, clues);
+    if (!board) {
+        res.status(404).json({ error: 'Board not found' });
+        return;
+    }
+    res.json({ board });
+});
+// DELETE /api/daily/admin/results/:date  — wipe all results for a date
+router.delete('/admin/results/:date', auth_1.requireAuth, (req, res) => {
+    if (!requireAdmin(req, res))
+        return;
+    const { date } = req.params;
+    // Also clear any in-memory sessions for that date
+    for (const key of sessions.keys()) {
+        if (key.endsWith(`:${date}`))
+            sessions.delete(key);
+    }
+    const cleared = db_1.db.clearDailyResults(date);
+    res.json({ ok: true, cleared });
+});
+// DELETE /api/daily/admin/board/:id
+router.delete('/admin/board/:id', auth_1.requireAuth, (req, res) => {
+    if (!requireAdmin(req, res))
+        return;
+    const id = parseInt(req.params.id, 10);
+    const ok = db_1.db.deleteDailyBoard(id);
+    if (!ok) {
+        res.status(404).json({ error: 'Board not found' });
+        return;
+    }
+    res.json({ ok: true });
+});
+// ─── helpers ─────────────────────────────────────────────────────────────────
+function serializeSession(s) {
+    const clue = s.board.clues[s.currentRound] ?? null;
+    const maxGuesses = clue ? clue.number + 1 : 0;
+    return {
+        currentRound: s.currentRound,
+        totalRounds: s.board.clues.length,
+        guessesThisRound: s.guessesThisRound,
+        maxGuessesThisRound: maxGuesses,
+        agentsFound: s.agentsFound,
+        totalAgents: s.board.cards.filter(c => c.type === 'agent').length,
+        history: s.history,
+        roundHistory: s.roundHistory,
+        revealedCards: s.revealedIndices.map(idx => ({
+            index: idx,
+            type: s.board.cards[idx].type,
+        })),
+        clue,
+        status: s.status,
+    };
+}
+exports.default = router;

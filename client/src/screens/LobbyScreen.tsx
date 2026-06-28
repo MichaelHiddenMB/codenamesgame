@@ -11,7 +11,7 @@ import { Player } from '../types';
 
 export function LobbyScreen() {
   const navigate = useNavigate();
-  const { lobby, game, myRole, leaveLobby, switchTeam, setSpymaster, startGame, lobbyError, broadcastAvatar, goSpectator } = useGame();
+  const { lobby, game, myRole, leaveLobby, switchTeam, setSpymaster, transferHost, randomizeTeams, startGame, lobbyError, broadcastAvatar, goSpectator } = useGame();
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -118,9 +118,12 @@ export function LobbyScreen() {
             borderColor="#6a3320"
             players={rustPlayers}
             myUserId={user.userId}
+            hostUserId={lobby.hostUserId}
+            iAmHost={isHost}
             isMyTeam={myTeam === 'rust'}
             onSwitchTeam={() => switchTeam('rust')}
             onSetSpymaster={setSpymaster}
+            onTransferHost={transferHost}
             onAvatarClick={() => setShowProfile(true)}
           />
 
@@ -136,9 +139,12 @@ export function LobbyScreen() {
             borderColor="#1e5550"
             players={tealPlayers}
             myUserId={user.userId}
+            hostUserId={lobby.hostUserId}
+            iAmHost={isHost}
             isMyTeam={myTeam === 'teal'}
             onSwitchTeam={() => switchTeam('teal')}
             onSetSpymaster={setSpymaster}
+            onTransferHost={transferHost}
             onAvatarClick={() => setShowProfile(true)}
           />
         </div>
@@ -185,15 +191,36 @@ export function LobbyScreen() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 24, paddingTop: 20, borderTop: '2px solid #2c2319' }}>
           <div>
             <div style={{ fontSize: 13, color: '#f3e9d6' }}>{readyText}</div>
-            <div style={{ fontSize: 11, color: '#6b6155', marginTop: 5 }}>Only the host can start the game.</div>
+            <div style={{ fontSize: 11, color: '#6b6155', marginTop: 5 }}>
+              {(() => {
+                const host = lobby.players.find(p => p.userId === lobby.hostUserId);
+                const hostName = host ? host.username.toUpperCase() : 'HOST';
+                return isHost ? 'You are the party leader.' : `${hostName} is the party leader.`;
+              })()}
+            </div>
           </div>
-          <GoldButton
-            onClick={startGame}
-            disabled={!isHost || !canStart}
-            style={{ marginLeft: 'auto', fontSize: 13, padding: '18px 30px', letterSpacing: 1, opacity: (!isHost || !canStart) ? 0.5 : 1 }}
-          >
-            START GAME →
-          </GoldButton>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
+            {isHost && (
+              <button
+                onClick={randomizeTeams}
+                style={{
+                  fontFamily: "'Press Start 2P', monospace", fontSize: 9,
+                  color: '#8c7c68', border: '2px solid #3a2e22',
+                  padding: '14px 18px', borderRadius: 6,
+                  background: 'none', cursor: 'pointer', letterSpacing: 1,
+                }}
+              >
+                ⇄ RANDOMIZE
+              </button>
+            )}
+            <GoldButton
+              onClick={startGame}
+              disabled={!isHost || !canStart}
+              style={{ fontSize: 13, padding: '18px 30px', letterSpacing: 1, opacity: (!isHost || !canStart) ? 0.5 : 1 }}
+            >
+              START GAME →
+            </GoldButton>
+          </div>
         </div>
       </div>
     </div>
@@ -202,7 +229,7 @@ export function LobbyScreen() {
 }
 
 function TeamColumn({
-  team, label, accentColor, borderColor, players, myUserId, isMyTeam, onSwitchTeam, onSetSpymaster, onAvatarClick,
+  label, accentColor, borderColor, players, myUserId, hostUserId, iAmHost, isMyTeam, onSwitchTeam, onSetSpymaster, onTransferHost, onAvatarClick,
 }: {
   team: 'rust' | 'teal';
   label: string;
@@ -210,9 +237,12 @@ function TeamColumn({
   borderColor: string;
   players: Player[];
   myUserId: number;
+  hostUserId: number;
+  iAmHost: boolean;
   isMyTeam: boolean;
   onSwitchTeam: () => void;
   onSetSpymaster: (userId: number) => void;
+  onTransferHost: (userId: number) => void;
   onAvatarClick: () => void;
 }) {
   const spymaster = players.find(p => p.role === 'spymaster');
@@ -232,7 +262,7 @@ function TeamColumn({
 
       <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#8c7c68', letterSpacing: 1, margin: '16px 0 11px' }}>★ SPYMASTER</div>
       {spymaster ? (
-        <PlayerRow player={spymaster} myUserId={myUserId} isSpymaster onSetSpymaster={onSetSpymaster} onAvatarClick={onAvatarClick} />
+        <PlayerRow player={spymaster} myUserId={myUserId} hostUserId={hostUserId} iAmHost={iAmHost} isSpymaster onSetSpymaster={onSetSpymaster} onTransferHost={onTransferHost} onAvatarClick={onAvatarClick} />
       ) : (
         <div style={{ fontSize: 12, color: '#5f5547', padding: '9px 10px', background: '#1b1611', borderRadius: 8, border: '1px dashed #3a2e22' }}>
           No spymaster yet
@@ -242,7 +272,7 @@ function TeamColumn({
       <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#8c7c68', letterSpacing: 1, margin: '18px 0 11px' }}>OPERATIVES</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {operatives.map(p => (
-          <PlayerRow key={p.userId} player={p} myUserId={myUserId} onSetSpymaster={onSetSpymaster} teamAccent={accentColor} onAvatarClick={onAvatarClick} />
+          <PlayerRow key={p.userId} player={p} myUserId={myUserId} hostUserId={hostUserId} iAmHost={iAmHost} onSetSpymaster={onSetSpymaster} onTransferHost={onTransferHost} teamAccent={accentColor} onAvatarClick={onAvatarClick} />
         ))}
         {operatives.length === 0 && (
           <div style={{ fontSize: 12, color: '#5f5547', padding: '8px 10px' }}>—</div>
@@ -263,15 +293,19 @@ function TeamColumn({
   );
 }
 
-function PlayerRow({ player, myUserId, isSpymaster, onSetSpymaster, teamAccent, onAvatarClick }: {
+function PlayerRow({ player, myUserId, hostUserId, iAmHost, isSpymaster, onSetSpymaster, onTransferHost, teamAccent, onAvatarClick }: {
   player: Player;
   myUserId: number;
+  hostUserId: number;
+  iAmHost: boolean;
   isSpymaster?: boolean;
   onSetSpymaster: (userId: number) => void;
+  onTransferHost: (userId: number) => void;
   teamAccent?: string;
   onAvatarClick: () => void;
 }) {
   const isMe = player.userId === myUserId;
+  const isHost = player.userId === hostUserId;
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 11,
@@ -300,26 +334,39 @@ function PlayerRow({ player, myUserId, isSpymaster, onSetSpymaster, teamAccent, 
         )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: '#f3e9d6', fontWeight: 700 }}>
-          {player.username.toUpperCase()}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 14, color: '#f3e9d6', fontWeight: 700 }}>{player.username.toUpperCase()}</span>
+          {isHost && (
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#e2a93b', letterSpacing: 1 }}>♛ HOST</span>
+          )}
           {isMe && (
-            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: teamAccent ?? '#2f9c8f', marginLeft: 6 }}>YOU</span>
+            <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: teamAccent ?? '#2f9c8f' }}>YOU</span>
           )}
         </div>
         <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#e2a93b', marginTop: 3 }}>
           {player.coins}¢
         </div>
       </div>
-      {isSpymaster ? (
-        <span style={{ fontSize: 14, color: '#e2a93b' }}>★</span>
-      ) : (
-        <button onClick={() => onSetSpymaster(player.userId)} style={{
-          fontFamily: "'Press Start 2P', monospace", fontSize: 7,
-          color: '#7c7163', border: '1px solid #3a2e22',
-          padding: '7px 9px', borderRadius: 5,
-          background: 'none', cursor: 'pointer',
-        }}>★ SET</button>
-      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end' }}>
+        {isSpymaster ? (
+          <span style={{ fontSize: 14, color: '#e2a93b' }}>★</span>
+        ) : (
+          <button onClick={() => onSetSpymaster(player.userId)} style={{
+            fontFamily: "'Press Start 2P', monospace", fontSize: 7,
+            color: '#7c7163', border: '1px solid #3a2e22',
+            padding: '7px 9px', borderRadius: 5,
+            background: 'none', cursor: 'pointer',
+          }}>★ SET</button>
+        )}
+        {iAmHost && !isHost && (
+          <button onClick={() => onTransferHost(player.userId)} style={{
+            fontFamily: "'Press Start 2P', monospace", fontSize: 6,
+            color: '#7c5c20', border: '1px solid #4a3820',
+            padding: '5px 7px', borderRadius: 5,
+            background: 'none', cursor: 'pointer',
+          }}>♛ HOST</button>
+        )}
+      </div>
     </div>
   );
 }

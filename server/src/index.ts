@@ -5,6 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import authRouter from './routes/auth';
 import shopRouter from './routes/shop';
+import dailyRouter from './routes/daily';
 import { registerSocketHandlers } from './socket/handlers';
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/shop', shopRouter);
+app.use('/api/daily', dailyRouter);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

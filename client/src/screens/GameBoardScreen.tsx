@@ -5,11 +5,11 @@ import { GoldButton } from '../components/GoldButton';
 import { PfpAvatar } from '../components/PfpAvatar';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardTeam, Clue } from '../types';
+import { Card, Clue } from '../types';
 
 export function GameBoardScreen() {
   const navigate = useNavigate();
-  const { lobby, game, myRole, submitClue, guessCard, endTurn, leaveLobby, returnToLobby, buyPowerUp } = useGame();
+  const { lobby, game, myRole, submitClue, guessCard, endTurn, leaveLobby, returnToLobby, dismissGame, buyPowerUp } = useGame();
   const { user, socket } = useAuth();
   const [clueWord, setClueWord] = useState('');
   const [clueWord2, setClueWord2] = useState('');
@@ -20,6 +20,7 @@ export function GameBoardScreen() {
   const [allHovers, setAllHovers] = useState<{ userId: number; username: string; cardIndices: number[] }[]>([]);
   const [flashClue, setFlashClue] = useState<Clue | null>(null);
   const [flashVisible, setFlashVisible] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const canEndTurnRef = useRef(false);
   const prevClueKeyRef = useRef<string | null>(null);
 
@@ -40,10 +41,13 @@ export function GameBoardScreen() {
     return () => { socket.off('game:hovers', handler); };
   }, [socket]);
 
-  // Clear local hover selections when it's no longer our turn to guess
+  // Clear selections whenever the active turn or phase changes
   useEffect(() => {
-    setPendingCards([]);
-  }, [game?.currentTurn, game?.phase]);
+    setPendingCards(prev => {
+      if (prev.length > 0) socket?.emit('game:hover', { indices: [] });
+      return [];
+    });
+  }, [game?.currentTurn, game?.phase, socket]);
 
   // Flash new clue in the center of the screen
   useEffect(() => {
@@ -122,46 +126,6 @@ export function GameBoardScreen() {
 
   return (
     <>
-    {game.winner && (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 100,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        background: 'rgba(8,6,4,.88)',
-        backdropFilter: 'blur(6px)',
-      }}>
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
-          <div style={{
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: 'clamp(32px, 6vw, 72px)',
-            color: winnerColor,
-            textShadow: `0 0 40px ${winnerGlow}, 0 0 80px ${winnerGlow}`,
-            lineHeight: 1.3,
-          }}>
-            {game.winner.toUpperCase()}
-            <br />
-            WINS!
-          </div>
-          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 'clamp(10px, 1.5vw, 14px)', color: '#e2a93b', letterSpacing: 2 }}>
-            +50 COINS FOR THE WINNING TEAM
-          </div>
-          <div style={{ display: 'flex', gap: 14, marginTop: 12 }}>
-            {isHost && (
-              <GoldButton onClick={returnToLobby} style={{ fontSize: 12, padding: '18px 32px', letterSpacing: 1 }}>
-                RETURN TO LOBBY
-              </GoldButton>
-            )}
-            <GoldButton secondary onClick={handleLeave} style={{ fontSize: 12, padding: '18px 32px', letterSpacing: 1 }}>
-              LEAVE GAME
-            </GoldButton>
-          </div>
-          {!isHost && (
-            <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#5f5547', letterSpacing: 1 }}>
-              WAITING FOR HOST TO RETURN TO LOBBY...
-            </div>
-          )}
-        </div>
-      </div>
-    )}
     <div style={{ minHeight: '100vh', background: '#0e0b08', display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '30px 20px 20px' }}>
         <div style={{
@@ -252,6 +216,60 @@ export function GameBoardScreen() {
             </div>
           </div>
 
+          {/* winner banner */}
+          {game.winner && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+              margin: '20px 0 0', padding: '18px 24px',
+              background: '#120e0a', borderRadius: 10,
+              border: `2px solid ${winnerColor}`,
+              boxShadow: `0 0 32px ${winnerGlow}`,
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: 'clamp(16px, 2.5vw, 28px)',
+                  color: winnerColor,
+                  textShadow: `0 0 20px ${winnerGlow}`,
+                  lineHeight: 1.3,
+                }}>
+                  {game.winner.toUpperCase()} WINS!
+                </div>
+                <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: '#e2a93b', letterSpacing: 2 }}>
+                  +50 COINS FOR THE WINNING TEAM
+                </div>
+              </div>
+              <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#5f5547', letterSpacing: 1 }}>
+                SPYMASTER VIEW
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {isHost ? (
+                    <GoldButton onClick={() => { returnToLobby(); dismissGame(); }} style={{ fontSize: 10, padding: '14px 22px', letterSpacing: 1 }}>
+                      RETURN TO LOBBY
+                    </GoldButton>
+                  ) : (
+                    <GoldButton
+                      onClick={dismissGame}
+                      disabled={lobby.status === 'in-game'}
+                      style={{ fontSize: 10, padding: '14px 22px', letterSpacing: 1, opacity: lobby.status === 'in-game' ? 0.4 : 1 }}
+                    >
+                      RETURN TO LOBBY
+                    </GoldButton>
+                  )}
+                  <GoldButton secondary onClick={handleLeave} style={{ fontSize: 10, padding: '14px 22px', letterSpacing: 1 }}>
+                    LEAVE GAME
+                  </GoldButton>
+                </div>
+                {!isHost && lobby.status === 'in-game' && (
+                  <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#5f5547', letterSpacing: 1 }}>
+                    WAITING FOR HOST...
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* body: rail | board | rail */}
           <div style={{ display: 'flex', gap: 24, paddingTop: 22 }}>
             {/* RUST rail */}
@@ -269,24 +287,23 @@ export function GameBoardScreen() {
                       key={i}
                       card={card}
                       index={i}
-                      isSpymaster={isSpymaster}
                       canGuess={canGuess}
                       isLocalHover={pendingCards.includes(i)}
                       remoteHovers={remoteHovers}
                       onGuess={(idx) => {
                         if (!canGuess || card.revealed) return;
-                        if (pendingCards.includes(idx)) {
-                          // Second click on a selected card — confirm guess
-                          guessCard(idx);
-                          const next = pendingCards.filter(c => c !== idx);
-                          setPendingCards(next);
-                          socket?.emit('game:hover', { indices: next });
-                        } else {
-                          // First click — add to hovered set
-                          const next = [...pendingCards, idx];
-                          setPendingCards(next);
-                          socket?.emit('game:hover', { indices: next });
-                        }
+                        const next = pendingCards.includes(idx)
+                          ? pendingCards.filter(c => c !== idx)   // deselect
+                          : [...pendingCards, idx];                 // select
+                        setPendingCards(next);
+                        socket?.emit('game:hover', { indices: next });
+                      }}
+                      onConfirmGuess={(idx) => {
+                        if (!canGuess || card.revealed) return;
+                        guessCard(idx);
+                        const next = pendingCards.filter(c => c !== idx);
+                        setPendingCards(next);
+                        socket?.emit('game:hover', { indices: next });
                       }}
                     />
                   );
@@ -397,6 +414,52 @@ export function GameBoardScreen() {
               </GoldButton>
             )}
           </div>
+
+          {/* clue history */}
+          <div style={{ marginTop: 12, borderTop: '1px solid #2c2319' }}>
+            <button
+              onClick={() => setShowHistory(h => !h)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 4px', background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: '#5f5547', letterSpacing: 1,
+              }}
+            >
+              <span>CLUE HISTORY ({game.clueHistory.length})</span>
+              <span>{showHistory ? '▲' : '▼'}</span>
+            </button>
+            {showHistory && (
+              <div style={{ maxHeight: 220, overflowY: 'auto', paddingBottom: 8 }}>
+                {game.clueHistory.length === 0 ? (
+                  <div style={{ fontSize: 12, color: '#3a2e22', padding: '6px 4px' }}>No clues given yet.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {game.clueHistory.map((entry, i) => (
+                      <div key={i} style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '7px 12px', background: '#15110c', borderRadius: 6,
+                        borderLeft: `3px solid ${entry.team === 'rust' ? '#d65a37' : '#2f9c8f'}`,
+                      }}>
+                        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: '#5f5547', minWidth: 28 }}>
+                          R{entry.round}
+                        </span>
+                        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, color: entry.team === 'rust' ? '#d65a37' : '#2f9c8f', minWidth: 34 }}>
+                          {entry.team.toUpperCase()}
+                        </span>
+                        <span style={{ fontWeight: 700, fontSize: 15, color: '#e2a93b', letterSpacing: 2, flex: 1 }}>
+                          {entry.word}{entry.word2 ? ` / ${entry.word2}` : ''}
+                        </span>
+                        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: '#8c7c68' }}>
+                          ×{entry.number}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
     </div>
@@ -440,11 +503,12 @@ export function GameBoardScreen() {
 }
 
 const POWER_UPS = [
-  { type: 'REVEAL_NEUTRAL',  name: 'SCOUT',       price: 100, desc: 'Reveal a neutral word for everyone' },
-  { type: 'REVEAL_FRIENDLY', name: 'ILLUMINATE',   price: 150, desc: 'Reveal one of your team\'s words' },
-  { type: 'STEAL_NEUTRAL',   name: 'INFILTRATE',   price: 200, desc: 'Turn a neutral word into an opponent word' },
-  { type: 'DOUBLE_CLUE',     name: 'DUAL SIGNAL',  price: 200, desc: 'Spymaster gives two-word clue this turn' },
-  { type: 'REMOVE_AVOID',    name: 'DEFUSE',       price: 200, desc: 'Remove the black word from the board' },
+  { type: 'REVEAL_NEUTRAL',  name: 'SCOUT',       price: 50,  desc: 'Reveal a neutral word for everyone' },
+  { type: 'REVEAL_FRIENDLY', name: 'ILLUMINATE',   price: 75,  desc: 'Reveal one of your team\'s words' },
+  { type: 'STEAL_NEUTRAL',   name: 'INFILTRATE',   price: 100, desc: 'Turn a neutral word into an opponent word' },
+  { type: 'DOUBLE_CLUE',     name: 'DUAL SIGNAL',  price: 100, desc: 'Spymaster gives two-word clue this turn' },
+  { type: 'REMOVE_AVOID',    name: 'DEFUSE',       price: 100, desc: 'Remove the black word from the board' },
+  { type: 'REROLL_BOARD',    name: 'REROLL',       price: 100, desc: 'Replace all unguessed words with new ones' },
 ] as const;
 
 function PowerUpPanel({ coins, doubleClueTeam, myTeam, onBuy }: {
@@ -518,14 +582,14 @@ const CARD_SUNKEN_EDGE: Record<string, string> = {
   rust: '#3d150b', teal: '#0c2723', neutral: '#332b1d', avoid: '#0a0805', hidden: '#2c2319',
 };
 
-function GameCard({ card, index, isSpymaster, canGuess, isLocalHover, remoteHovers, onGuess }: {
+function GameCard({ card, index, canGuess, isLocalHover, remoteHovers, onGuess, onConfirmGuess }: {
   card: Card;
   index: number;
-  isSpymaster: boolean;
   canGuess: boolean;
   isLocalHover: boolean;
   remoteHovers: string[];
   onGuess: (i: number) => void;
+  onConfirmGuess: (i: number) => void;
 }) {
   const team = card.team;
   const clickable = canGuess && !card.revealed;
@@ -605,6 +669,24 @@ function GameCard({ card, index, isSpymaster, canGuess, isLocalHover, remoteHove
       }}>
         {card.word}
       </span>
+      {isLocalHover && (
+        <div
+          onClick={e => { e.stopPropagation(); onConfirmGuess(index); }}
+          style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            background: 'rgba(226,169,59,.92)',
+            padding: '0.65em 0',
+            textAlign: 'center',
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: '0.85em',
+            color: '#1b1611',
+            letterSpacing: '0.06em',
+            cursor: 'pointer',
+          }}
+        >
+          ✓ GUESS
+        </div>
+      )}
     </button>
   );
 }

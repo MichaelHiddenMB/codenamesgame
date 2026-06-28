@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { PfpAvatar } from '../components/PfpAvatar';
-import { PixelCoin, PixelMagnifier } from '../components/PixelIcons';
+import { PixelCoin, PixelMagnifier, PixelStar } from '../components/PixelIcons';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { ProfileModal } from './ProfileModal';
@@ -33,7 +33,12 @@ export function HomeScreen() {
       onClick: () => navigate('/join'),
     },
     {
-      num: '03', title: 'SHOP', desc: 'Cash in the coins you earn for fresh avatars and profile looks.',
+      num: '03', title: 'DAILY', desc: 'Solve today\'s 3×4 puzzle. One board, four rounds, leaderboard.',
+      accentColor: '#9c6fcf', icon: <PixelStar size={28} />,
+      onClick: () => navigate('/daily'),
+    },
+    {
+      num: '04', title: 'SHOP', desc: 'Cash in the coins you earn for fresh avatars and profile looks.',
       accentColor: '#e2a93b', icon: <PixelCoin size={28} />,
       onClick: () => navigate('/shop'),
     },
@@ -74,7 +79,7 @@ export function HomeScreen() {
           </div>
 
           {/* desktop tiles */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18, marginTop: 26 }}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginTop: 26 }}
             className="tiles-desktop">
             {tiles.map((tile) => (
               <button key={tile.num} onClick={tile.onClick} style={{
@@ -104,6 +109,11 @@ export function HomeScreen() {
           {/* footer */}
           <div style={{ display: 'flex', alignItems: 'center', marginTop: 26, paddingTop: 18, borderTop: '2px solid #2c2319' }}>
             <span style={{ fontSize: 11, color: '#6b6155', letterSpacing: 1 }}>CODEWORDS · v0.1</span>
+            {user?.username.toLowerCase() === 'hiddenmb' && (
+              <button onClick={() => navigate('/daily-admin')} style={{ marginLeft: 16, fontSize: 11, color: '#9c6fcf', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Space Mono, monospace' }}>
+                DAILY ADMIN
+              </button>
+            )}
             <button onClick={logout} style={{ marginLeft: 'auto', fontSize: 11, color: '#5f5547', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Space Mono, monospace' }}>
               SIGN OUT
             </button>

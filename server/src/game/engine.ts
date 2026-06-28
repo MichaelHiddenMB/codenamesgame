@@ -16,22 +16,32 @@ export interface Clue {
   team: Team;
 }
 
-export type PowerUpType = 'REVEAL_FRIENDLY' | 'STEAL_NEUTRAL' | 'DOUBLE_CLUE' | 'REVEAL_NEUTRAL' | 'REMOVE_AVOID';
+export type PowerUpType = 'REVEAL_FRIENDLY' | 'STEAL_NEUTRAL' | 'DOUBLE_CLUE' | 'REVEAL_NEUTRAL' | 'REMOVE_AVOID' | 'REROLL_BOARD';
 
 export const POWER_UP_PRICES: Record<PowerUpType, number> = {
-  REVEAL_NEUTRAL:  100,
-  REVEAL_FRIENDLY: 150,
-  STEAL_NEUTRAL:   200,
-  DOUBLE_CLUE:     200,
-  REMOVE_AVOID:    200,
+  REVEAL_NEUTRAL:  50,
+  REVEAL_FRIENDLY: 75,
+  STEAL_NEUTRAL:   100,
+  DOUBLE_CLUE:     100,
+  REMOVE_AVOID:    100,
+  REROLL_BOARD:    100,
 };
 
 export type GamePhase = 'giving-clue' | 'guessing' | 'over';
 export type GameMode = 'CLASSIC' | 'FRIEND' | 'EXTENDED';
 export type TimerOption = 'off' | '30' | '60' | '90';
 
+export interface ClueHistoryEntry {
+  word: string;
+  word2?: string;
+  number: number;
+  team: Team;
+  round: number;
+}
+
 export interface GameState {
   roomCode: string;
+  mode: GameMode;
   board: Card[];
   currentTurn: Team;
   phase: GamePhase;
@@ -45,6 +55,7 @@ export interface GameState {
   avoidPenaltyTeam: Team | null;
   powerUpsEnabled: boolean;
   doubleClueTeam: Team | null;
+  clueHistory: ClueHistoryEntry[];
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -109,14 +120,20 @@ export function applyGuess(
     phase = 'over';
     event = 'avoid';
   } else if (card.team !== currentTurn) {
-    // Wrong team: end turn
     event = card.team === 'neutral' ? 'neutral' : 'opponent';
-    currentTurn = currentTurn === 'rust' ? 'teal' : 'rust';
-    phase = 'giving-clue';
-    activeClue = null;
-    guessesUsed = 0;
-    round += 1;
-    timerEndsAt = timerSeconds ? Date.now() + timerSeconds * 1000 : null;
+    // Check if revealing this card completed the opponent's set
+    const rustRem = countRemaining(board, 'rust');
+    const tealRem = countRemaining(board, 'teal');
+    if (rustRem === 0) { winner = 'rust'; phase = 'over'; }
+    else if (tealRem === 0) { winner = 'teal'; phase = 'over'; }
+    else {
+      currentTurn = currentTurn === 'rust' ? 'teal' : 'rust';
+      phase = 'giving-clue';
+      activeClue = null;
+      guessesUsed = 0;
+      round += 1;
+      timerEndsAt = timerSeconds ? Date.now() + timerSeconds * 1000 : null;
+    }
   } else {
     // Correct guess
     const maxGuesses = (activeClue?.number ?? 1) + 1;
@@ -156,13 +173,21 @@ export function applyGuess(
 }
 
 export function applyClue(state: GameState, word: string, number: number, timerSeconds: number | null, word2?: string): GameState {
+  const entry: ClueHistoryEntry = {
+    word: word.toUpperCase(),
+    word2: word2 ? word2.toUpperCase() : undefined,
+    number,
+    team: state.currentTurn,
+    round: state.round,
+  };
   return {
     ...state,
     phase: 'guessing',
-    activeClue: { word: word.toUpperCase(), word2: word2 ? word2.toUpperCase() : undefined, number, team: state.currentTurn },
+    activeClue: { word: entry.word, word2: entry.word2, number, team: state.currentTurn },
     guessesUsed: 0,
     timerEndsAt: timerSeconds ? Date.now() + timerSeconds * 1000 : null,
-    doubleClueTeam: null, // consume pending double-clue for this team
+    doubleClueTeam: null,
+    clueHistory: [...state.clueHistory, entry],
   };
 }
 
@@ -171,7 +196,7 @@ export function applyPowerUp(state: GameState, type: PowerUpType, team: Team): G
 
   switch (type) {
     case 'REVEAL_FRIENDLY': {
-      const candidates = board.map((c, i) => i).filter(i => board[i].team === team && !board[i].revealed);
+      const candidates = board.map((_, i) => i).filter(i => board[i].team === team && !board[i].revealed);
       if (candidates.length === 0) return state;
       board[candidates[Math.floor(Math.random() * candidates.length)]].revealed = true;
       const rustRem = countRemaining(board, 'rust');
@@ -184,7 +209,7 @@ export function applyPowerUp(state: GameState, type: PowerUpType, team: Team): G
     }
     case 'STEAL_NEUTRAL': {
       const opponent: Team = team === 'rust' ? 'teal' : 'rust';
-      const candidates = board.map((c, i) => i).filter(i => board[i].team === 'neutral' && !board[i].revealed);
+      const candidates = board.map((_, i) => i).filter(i => board[i].team === 'neutral' && !board[i].revealed);
       if (candidates.length === 0) return state;
       board[candidates[Math.floor(Math.random() * candidates.length)]].team = opponent;
       return { ...state, board, rustRemaining: countRemaining(board, 'rust'), tealRemaining: countRemaining(board, 'teal') };
@@ -192,7 +217,7 @@ export function applyPowerUp(state: GameState, type: PowerUpType, team: Team): G
     case 'DOUBLE_CLUE':
       return { ...state, doubleClueTeam: team };
     case 'REVEAL_NEUTRAL': {
-      const candidates = board.map((c, i) => i).filter(i => board[i].team === 'neutral' && !board[i].revealed);
+      const candidates = board.map((_, i) => i).filter(i => board[i].team === 'neutral' && !board[i].revealed);
       if (candidates.length === 0) return state;
       board[candidates[Math.floor(Math.random() * candidates.length)]].revealed = true;
       return { ...state, board };
@@ -201,6 +226,18 @@ export function applyPowerUp(state: GameState, type: PowerUpType, team: Team): G
       const idx = board.findIndex(c => c.team === 'avoid' && !c.revealed);
       if (idx === -1) return state;
       board[idx].team = 'neutral';
+      return { ...state, board };
+    }
+    case 'REROLL_BOARD': {
+      const usedWords = new Set(board.map(c => c.word));
+      const pool = WORD_POOLS[state.mode] ?? WORD_POOLS.CLASSIC;
+      const available = shuffle(pool.filter(w => !usedWords.has(w)));
+      let refillIdx = 0;
+      for (let i = 0; i < board.length; i++) {
+        if (!board[i].revealed && refillIdx < available.length) {
+          board[i] = { ...board[i], word: available[refillIdx++] };
+        }
+      }
       return { ...state, board };
     }
     default:

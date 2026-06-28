@@ -9,6 +9,8 @@ import { JoinScreen } from './screens/JoinScreen';
 import { LobbyScreen } from './screens/LobbyScreen';
 import { GameBoardScreen } from './screens/GameBoardScreen';
 import { ShopScreen } from './screens/ShopScreen';
+import { DailyScreen } from './screens/DailyScreen';
+import { DailyAdminScreen } from './screens/DailyAdminScreen';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -38,6 +40,8 @@ function AppRoutes() {
         <Route path="/lobby" element={<LobbyScreen />} />
         <Route path="/game" element={<GameBoardScreen />} />
         <Route path="/shop" element={<ShopScreen />} />
+        <Route path="/daily" element={<DailyScreen />} />
+        <Route path="/daily-admin" element={<DailyAdminScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </GameProvider>

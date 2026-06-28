@@ -1,23 +1,28 @@
-import amari        from './assets/avatars/amari.jpg';
-import mod          from './assets/avatars/mod.jpg';
-import mr4          from './assets/avatars/mr4.jpg';
-import petah        from './assets/avatars/petah.jpg';
-import chudmb       from './assets/avatars/chudmb.jpg';
-import villy        from './assets/avatars/villy.jpg';
-import backshots    from './assets/avatars/backshots.jpg';
-import hungrynell   from './assets/avatars/hungrynell.jpg';
-import bwu          from './assets/avatars/bwu.jpg';
-import midget       from './assets/avatars/midget.jpg';
-import nah          from './assets/avatars/nah.jpg';
-import ratsum       from './assets/avatars/ratsum.jpg';
-import lovers       from './assets/avatars/lovers.jpg';
-import carson       from './assets/avatars/carson.jpg';
-import gojo         from './assets/avatars/gojo.jpg';
-import senku        from './assets/avatars/senku.jpg';
-import gilly        from './assets/avatars/gilly.jpg';
+import amari          from './assets/avatars/amari.jpg';
+import mod            from './assets/avatars/mod.jpg';
+import mr4            from './assets/avatars/mr4.jpg';
+import petah          from './assets/avatars/petah.jpg';
+import chudmb         from './assets/avatars/chudmb.jpg';
+import villy          from './assets/avatars/villy.jpg';
+import backshots      from './assets/avatars/backshots.jpg';
+import hungrynell     from './assets/avatars/hungrynell.jpg';
+import bwu            from './assets/avatars/bwu.jpg';
+import midget         from './assets/avatars/midget.jpg';
+import nah            from './assets/avatars/nah.jpg';
+import ratsum         from './assets/avatars/ratsum.jpg';
+import lovers         from './assets/avatars/lovers.jpg';
+import carson         from './assets/avatars/carson.jpg';
+import gojo           from './assets/avatars/gojo.jpg';
+import senku          from './assets/avatars/senku.jpg';
+import gilly          from './assets/avatars/gilly.jpg';
 import seths_creation from './assets/avatars/seths_creation.jpg';
-import mohamed      from './assets/avatars/mohamed.jpg';
-import watermelon   from './assets/avatars/watermelon.jpg';
+import mohamed        from './assets/avatars/mohamed.jpg';
+import watermelon     from './assets/avatars/watermelon.jpg';
+import cuddle         from './assets/avatars/cuddle.jpg';
+import furrysum       from './assets/avatars/furrysum.jpg';
+import goatmari       from './assets/avatars/goatmari.jpg';
+import masksum        from './assets/avatars/masksum.jpg';
+import one_move_ahead from './assets/avatars/one_move_ahead.jpg';
 
 export const avatarUrls: Record<number, string> = {
   1:  amari,
@@ -40,4 +45,9 @@ export const avatarUrls: Record<number, string> = {
   18: seths_creation,
   19: mohamed,
   20: watermelon,
+  21: cuddle,
+  22: furrysum,
+  23: goatmari,
+  24: masksum,
+  25: one_move_ahead,
 };

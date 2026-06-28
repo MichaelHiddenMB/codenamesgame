@@ -48,6 +48,40 @@ export function PixelMagnifier({ size = 27 }: { size?: number }) {
   );
 }
 
+export function PixelStar({ size = 28 }: { size?: number }) {
+  const u = Math.floor(size / 9);
+  const HI  = '#c4a0e8';
+  const MID = '#9c6fcf';
+  const LO  = '#7a52a8';
+  const px = (col: number, row: number, c: string) => `${col * u}px ${row * u}px 0 ${c}`;
+  const shadow = [
+    // row 0 – top point
+    px(4, 0, HI),
+    // row 1
+    px(3, 1, HI), px(4, 1, HI), px(5, 1, HI),
+    // row 2
+    px(2, 2, HI), px(3, 2, HI), px(4, 2, HI), px(5, 2, HI), px(6, 2, HI),
+    // row 3 – wide horizontal bar
+    px(0, 3, MID), px(1, 3, MID), px(2, 3, MID), px(3, 3, MID),
+    px(4, 3, HI),
+    px(5, 3, MID), px(6, 3, MID), px(7, 3, MID), px(8, 3, MID),
+    // row 4
+    px(1, 4, MID), px(2, 4, MID), px(3, 4, MID), px(4, 4, MID),
+    px(5, 4, MID), px(6, 4, MID), px(7, 4, MID),
+    // row 5
+    px(2, 5, MID), px(3, 5, MID), px(4, 5, MID), px(5, 5, MID), px(6, 5, MID),
+    // row 6 – two lower points begin
+    px(1, 6, LO), px(4, 6, LO), px(7, 6, LO),
+    // row 7 – bottom tips
+    px(0, 7, LO), px(4, 7, LO), px(8, 7, LO),
+  ].join(', ');
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', width: u * 9, height: u * 8, flexShrink: 0 }}>
+      <span style={{ position: 'absolute', top: 0, left: 0, width: u, height: u, background: 'transparent', boxShadow: shadow }} />
+    </span>
+  );
+}
+
 export function PixelCopyIcon({ size = 15 }: { size?: number }) {
   const unit = Math.max(1, Math.floor(size / 5));
   const s = unit * 5;

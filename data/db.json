@@ -4,7 +4,7 @@
       "id": 1,
       "username": "HiddenMB",
       "password_hash": "$2a$10$idUsb/.XkHGYKzAoZM5ym.WeBuGtHQxH9/572FXDXHi9jXcbmWCAC",
-      "coins": 80,
+      "coins": 130,
       "equipped_avatar_id": 4,
       "owned_avatar_ids": [
         1,
@@ -18,7 +18,7 @@
       "id": 2,
       "username": "test1",
       "password_hash": "$2a$10$exmA6VR.d7nf53ncrjn6f./uf4DUwyQ.auMAPDo3CiKhQvUxzfrYS",
-      "coins": 100,
+      "coins": 200,
       "equipped_avatar_id": 1,
       "owned_avatar_ids": [
         1,
@@ -30,7 +30,7 @@
       "id": 3,
       "username": "test2",
       "password_hash": "$2a$10$WzQOf3/K1OHDec188um/I.oJybVEBQ7Jb6k/stmyvKwReGv/8h02G",
-      "coins": 230,
+      "coins": 130,
       "equipped_avatar_id": 1,
       "owned_avatar_ids": [
         1,
@@ -43,7 +43,7 @@
       "id": 4,
       "username": "test3",
       "password_hash": "$2a$10$6D56qdbyNKMoPqLkEFy4D.cN5C3MamPDEJQXPw3dAK7Y8j10cdV7C",
-      "coins": 250,
+      "coins": 350,
       "equipped_avatar_id": 1,
       "owned_avatar_ids": [
         1,
@@ -71,7 +71,157 @@
       "equipped_avatar_id": 0,
       "owned_avatar_ids": [],
       "created_at": "2026-06-26T22:12:05.607Z"
+    },
+    {
+      "id": 7,
+      "username": "testdaily99",
+      "password_hash": "$2a$10$nPQQix3X0l21b8xIP0oIOe1WenW2s4lEwx2B2Zk2UbhVyjIIHNe1W",
+      "coins": 100,
+      "equipped_avatar_id": 0,
+      "owned_avatar_ids": [],
+      "created_at": "2026-06-27T21:40:59.429Z"
+    },
+    {
+      "id": 8,
+      "username": "boardtest1",
+      "password_hash": "$2a$10$K4sXN3KNS.Mzm9Vj6Vgzbe.jW9L13yUWehZrnty8fVwIoDjRcQkqi",
+      "coins": 100,
+      "equipped_avatar_id": 0,
+      "owned_avatar_ids": [],
+      "created_at": "2026-06-27T22:14:12.335Z"
+    },
+    {
+      "id": 9,
+      "username": "boardtest2",
+      "password_hash": "$2a$10$8MeFB4gOCsYHZwb6lqfJKOBEt3W7/HZDUapybfgPyEPzKZCA5atxK",
+      "coins": 100,
+      "equipped_avatar_id": 0,
+      "owned_avatar_ids": [],
+      "created_at": "2026-06-27T22:14:58.657Z"
     }
   ],
-  "nextUserId": 7
+  "nextUserId": 10,
+  "dailyBoards": [
+    {
+      "id": 2,
+      "date": "2026-06-27",
+      "cards": [
+        {
+          "word": "NAH",
+          "type": "neutral"
+        },
+        {
+          "word": "ASSDD",
+          "type": "avoid"
+        },
+        {
+          "word": "ADFADADF ADFA",
+          "type": "neutral"
+        },
+        {
+          "word": "AFDAFAD",
+          "type": "agent"
+        },
+        {
+          "word": "NOE",
+          "type": "neutral"
+        },
+        {
+          "word": "DFADFA",
+          "type": "neutral"
+        },
+        {
+          "word": "ADFADFADF",
+          "type": "agent"
+        },
+        {
+          "word": "AFADFAS",
+          "type": "agent"
+        },
+        {
+          "word": "EASFSA",
+          "type": "neutral"
+        },
+        {
+          "word": "ASDASDF",
+          "type": "neutral"
+        },
+        {
+          "word": "ADSASDFA",
+          "type": "agent"
+        },
+        {
+          "word": "AFDADFA",
+          "type": "agent"
+        }
+      ],
+      "clues": [
+        {
+          "word": "ADFADFA",
+          "number": 1
+        },
+        {
+          "word": "ADFAD",
+          "number": 1
+        },
+        {
+          "word": "ADFADFA",
+          "number": 1
+        },
+        {
+          "word": "ADFAS",
+          "number": 1
+        }
+      ],
+      "createdAt": "2026-06-27T21:54:48.659Z"
+    }
+  ],
+  "nextDailyBoardId": 3,
+  "dailyResults": [
+    {
+      "id": 12,
+      "date": "2026-06-27",
+      "userId": 1,
+      "username": "HiddenMB",
+      "equippedAvatarId": 4,
+      "solved": false,
+      "totalGuesses": 3,
+      "guessHistory": [
+        [
+          "agent",
+          "neutral"
+        ],
+        [
+          "avoid"
+        ]
+      ],
+      "completedAt": "2026-06-27T22:17:13.750Z"
+    },
+    {
+      "id": 13,
+      "date": "2026-06-27",
+      "userId": 2,
+      "username": "test1",
+      "equippedAvatarId": 1,
+      "solved": false,
+      "totalGuesses": 5,
+      "guessHistory": [
+        [
+          "neutral"
+        ],
+        [
+          "neutral"
+        ],
+        [
+          "agent",
+          "agent"
+        ],
+        [
+          "neutral"
+        ]
+      ],
+      "completedAt": "2026-06-27T22:17:23.784Z"
+    }
+  ],
+  "nextDailyResultId": 14
 }

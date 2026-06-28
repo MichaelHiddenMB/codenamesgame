@@ -51,4 +51,79 @@ export const api = {
 
   equipAvatar: (avatarId: number) =>
     request<{ equippedAvatarId: number }>('/shop/equip', { method: 'POST', body: JSON.stringify({ avatarId }) }),
+
+  // ── Daily mode ──────────────────────────────────────────────────────────────
+  dailyToday: () =>
+    request<{ date: string; board: { id: number; date: string; cards: { word: string }[]; clues: { word: string; number: number }[] } | null }>('/daily/today'),
+
+  dailySession: () =>
+    request<{ status: 'not-started' | 'in-progress' | 'won' | 'lost'; session: DailySessionState | null; result?: DailyResultData }>('/daily/session'),
+
+  dailyStart: () =>
+    request<{ session: DailySessionState }>('/daily/start', { method: 'POST' }),
+
+  dailyGuess: (cardIndex: number) =>
+    request<{ outcome: 'agent' | 'neutral' | 'avoid'; cardIndex: number; roundOver: boolean; gameOver: boolean; status: string; session: DailySessionState | null }>('/daily/guess', { method: 'POST', body: JSON.stringify({ cardIndex }) }),
+
+  dailyPass: () =>
+    request<{ gameOver: boolean; status: string; session: DailySessionState | null }>('/daily/pass', { method: 'POST' }),
+
+  dailyReveal: () =>
+    request<{ cards: { word: string; type: 'agent' | 'neutral' | 'avoid' }[]; clues: { word: string; number: number }[] }>('/daily/reveal'),
+
+  dailyLeaderboard: () =>
+    request<{ date: string; results: DailyResultData[] }>('/daily/leaderboard'),
+
+  dailyResultByUsername: (username: string) =>
+    request<{ result: DailyResultData }>(`/daily/result/${encodeURIComponent(username)}`),
+
+  // Admin
+  adminDailyBoards: () =>
+    request<{ boards: AdminDailyBoard[] }>('/daily/admin/boards'),
+
+  adminCreateDailyBoard: (payload: { date: string; cards: { word: string; type: 'agent' | 'neutral' | 'avoid' }[]; clues: { word: string; number: number }[] }) =>
+    request<{ board: AdminDailyBoard }>('/daily/admin/board', { method: 'POST', body: JSON.stringify(payload) }),
+
+  adminUpdateDailyBoard: (id: number, payload: { date: string; cards: { word: string; type: 'agent' | 'neutral' | 'avoid' }[]; clues: { word: string; number: number }[] }) =>
+    request<{ board: AdminDailyBoard }>(`/daily/admin/board/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+
+  adminDeleteDailyBoard: (id: number) =>
+    request<{ ok: boolean }>(`/daily/admin/board/${id}`, { method: 'DELETE' }),
+
+  adminResetDailyResults: (date: string) =>
+    request<{ ok: boolean; cleared: number }>(`/daily/admin/results/${encodeURIComponent(date)}`, { method: 'DELETE' }),
 };
+
+export interface DailySessionState {
+  currentRound: number;
+  totalRounds: number;
+  guessesThisRound: number;
+  maxGuessesThisRound: number;
+  agentsFound: number;
+  totalAgents: number;
+  history: ('agent' | 'neutral' | 'avoid')[][];
+  roundHistory: ('agent' | 'neutral' | 'avoid')[];
+  revealedCards: { index: number; type: 'agent' | 'neutral' | 'avoid' }[];
+  clue: { word: string; number: number } | null;
+  status: 'in-progress' | 'won' | 'lost';
+}
+
+export interface DailyResultData {
+  id: number;
+  date: string;
+  userId: number;
+  username: string;
+  equippedAvatarId: number;
+  solved: boolean;
+  totalGuesses: number;
+  guessHistory: ('agent' | 'neutral' | 'avoid')[][];
+  completedAt: string;
+}
+
+export interface AdminDailyBoard {
+  id: number;
+  date: string;
+  cards: { word: string; type: 'agent' | 'neutral' | 'avoid' }[];
+  clues: { word: string; number: number }[];
+  createdAt: string;
+}

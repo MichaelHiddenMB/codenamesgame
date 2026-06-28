@@ -15,7 +15,7 @@ export function CreateLobbyScreen() {
   const [mode, setMode] = useState<GameMode>('CLASSIC');
   const [timer, setTimer] = useState<TimerOption>('60');
   const [maxPlayers, setMaxPlayers] = useState(8);
-  const [powerUps, setPowerUps] = useState(false);
+  const [powerUps, setPowerUps] = useState(true);
 
   React.useEffect(() => {
     if (lobby) navigate('/lobby');

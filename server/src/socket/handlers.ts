@@ -87,7 +87,7 @@ function lobbyPublic(lobby: LobbyState) {
 function gamePublicForPlayer(state: GameState, role: 'spymaster' | 'operative' | 'spectator') {
   return {
     roomCode: state.roomCode,
-    board: role === 'spymaster' ? state.board : redactBoardForOperative(state.board),
+    board: (role === 'spymaster' || state.winner !== null) ? state.board : redactBoardForOperative(state.board),
     currentTurn: state.currentTurn,
     phase: state.phase,
     activeClue: state.activeClue,
@@ -100,6 +100,7 @@ function gamePublicForPlayer(state: GameState, role: 'spymaster' | 'operative' |
     avoidPenaltyTeam: state.avoidPenaltyTeam,
     powerUpsEnabled: state.powerUpsEnabled,
     doubleClueTeam: state.doubleClueTeam,
+    clueHistory: state.clueHistory,
   };
 }
 
@@ -334,6 +335,7 @@ export function registerSocketHandlers(io: IOServer) {
       const timerSec = getTimerSeconds(lobby.settings.timer);
       const game: GameState = {
         roomCode: code,
+        mode: lobby.settings.mode,
         board,
         currentTurn: firstTeam,
         phase: 'giving-clue',
@@ -347,6 +349,7 @@ export function registerSocketHandlers(io: IOServer) {
         avoidPenaltyTeam: null,
         powerUpsEnabled: lobby.settings.powerUps,
         doubleClueTeam: null,
+        clueHistory: [],
       };
       games.set(code, game);
       broadcastLobby(io, code);
@@ -386,7 +389,7 @@ export function registerSocketHandlers(io: IOServer) {
       const player = lobby.players.find(p => p.socketId === socket.id);
       if (!player || player.role === 'spectator' || !player.team) return;
 
-      const validTypes: PowerUpType[] = ['REVEAL_FRIENDLY', 'STEAL_NEUTRAL', 'DOUBLE_CLUE', 'REVEAL_NEUTRAL', 'REMOVE_AVOID'];
+      const validTypes: PowerUpType[] = ['REVEAL_FRIENDLY', 'STEAL_NEUTRAL', 'DOUBLE_CLUE', 'REVEAL_NEUTRAL', 'REMOVE_AVOID', 'REROLL_BOARD'];
       if (!validTypes.includes(type as PowerUpType)) return;
 
       const price = POWER_UP_PRICES[type as PowerUpType];
@@ -477,8 +480,9 @@ export function registerSocketHandlers(io: IOServer) {
       const code = socketToRoom.get(socket.id);
       if (!code) return;
       const lobby = lobbies.get(code);
-      if (!lobby) return;
-      if (lobby.hostUserId !== user.userId) return; // host only
+      if (!lobby || lobby.status !== 'in-game') return;
+      const game = games.get(code);
+      if (!game?.winner) return; // only allowed once game has ended
       games.delete(code);
       gameSpectatorSlots.delete(code);
       cardHovers.delete(code);
@@ -487,6 +491,52 @@ export function registerSocketHandlers(io: IOServer) {
       lobby.players = lobby.players.filter(p => p.role !== 'spectator');
       for (const key of pastPlayers.keys()) { if (key.endsWith(`:${code}`)) pastPlayers.delete(key); }
       io.to(code).emit('lobby:returned', lobbyPublic(lobby));
+    });
+
+    // ─── LOBBY: TRANSFER HOST ────────────────────────────────────────────────
+    socket.on('lobby:transfer-host', (targetUserId: number) => {
+      const code = socketToRoom.get(socket.id);
+      if (!code) return;
+      const lobby = lobbies.get(code);
+      if (!lobby || lobby.status !== 'waiting') return;
+      if (lobby.hostUserId !== user.userId) return;
+      const target = lobby.players.find(p => p.userId === targetUserId);
+      if (!target) return;
+      lobby.hostUserId = targetUserId;
+      broadcastLobby(io, code);
+    });
+
+    // ─── LOBBY: RANDOMIZE TEAMS ──────────────────────────────────────────────
+    socket.on('lobby:randomize', () => {
+      const code = socketToRoom.get(socket.id);
+      if (!code) return;
+      const lobby = lobbies.get(code);
+      if (!lobby || lobby.status !== 'waiting') return;
+      if (lobby.hostUserId !== user.userId) return;
+
+      const active = lobby.players.filter(p => p.role !== 'spectator');
+      if (active.length < 2) return;
+
+      // Fisher-Yates shuffle
+      for (let i = active.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [active[i], active[j]] = [active[j], active[i]];
+      }
+
+      const rustCount = Math.floor(active.length / 2);
+      active.forEach((p, i) => {
+        const player = lobby.players.find(lp => lp.userId === p.userId)!;
+        player.team = i < rustCount ? 'rust' : 'teal';
+        player.role = 'operative';
+      });
+
+      // Pick one spymaster per team at random (first after shuffle)
+      const rustPlayers = lobby.players.filter(p => p.team === 'rust');
+      const tealPlayers = lobby.players.filter(p => p.team === 'teal');
+      if (rustPlayers.length > 0) rustPlayers[0].role = 'spymaster';
+      if (tealPlayers.length > 0) tealPlayers[0].role = 'spymaster';
+
+      broadcastLobby(io, code);
     });
 
     // ─── LOBBY: BECOME SPECTATOR ─────────────────────────────────────────────

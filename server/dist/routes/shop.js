@@ -1,0 +1,79 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AVATARS = void 0;
+const express_1 = require("express");
+const db_1 = require("../db");
+const auth_1 = require("../middleware/auth");
+const router = (0, express_1.Router)();
+exports.AVATARS = [
+    { id: 2, name: 'MOD', price: 50 },
+    { id: 3, name: 'MR4', price: 50 },
+    { id: 9, name: 'BWU', price: 50 },
+    { id: 15, name: 'GOJO', price: 50 },
+    { id: 16, name: 'SENKU', price: 50 },
+    { id: 4, name: 'PETAH', price: 100 },
+    { id: 8, name: 'HUNGRYNELL', price: 100 },
+    { id: 10, name: 'MIDGET', price: 100 },
+    { id: 1, name: 'AMARI', price: 150 },
+    { id: 5, name: 'CHUDMB', price: 150 },
+    { id: 6, name: 'VILLY', price: 150 },
+    { id: 17, name: 'GILLY', price: 150 },
+    { id: 19, name: 'MOHAMED', price: 150 },
+    { id: 22, name: 'FURRYSUM', price: 150 },
+    { id: 24, name: 'MASKSUM', price: 150 },
+    { id: 7, name: 'BACKSHOTS', price: 200 },
+    { id: 12, name: 'RATSUM', price: 200 },
+    { id: 14, name: 'CARSON', price: 200 },
+    { id: 20, name: 'WATERMELON', price: 200 },
+    { id: 25, name: 'ONE MOVE AHEAD', price: 200 },
+    { id: 18, name: 'SETHS CREATION', price: 250 },
+    { id: 23, name: 'GOATMARI', price: 250 },
+    { id: 13, name: 'LOVERS', price: 300 },
+    { id: 21, name: 'CUDDLE', price: 300 },
+    { id: 11, name: 'NAH HONEY IM GOOD', price: 500 },
+];
+router.get('/', auth_1.requireAuth, (req, res) => {
+    const { userId } = req.user;
+    const user = db_1.db.getUserById(userId);
+    if (!user)
+        return res.status(404).json({ error: 'User not found' });
+    const ownedSet = new Set(user.owned_avatar_ids);
+    const items = exports.AVATARS.map(a => ({
+        ...a,
+        owned: ownedSet.has(a.id),
+        equipped: a.id === user.equipped_avatar_id,
+    }));
+    return res.json({ coins: user.coins, equippedAvatarId: user.equipped_avatar_id, items });
+});
+router.post('/buy', auth_1.requireAuth, (req, res) => {
+    const { userId } = req.user;
+    const { avatarId } = req.body ?? {};
+    const avatar = exports.AVATARS.find(a => a.id === Number(avatarId));
+    if (!avatar)
+        return res.status(404).json({ error: 'Avatar not found' });
+    const user = db_1.db.getUserById(userId);
+    if (!user)
+        return res.status(404).json({ error: 'User not found' });
+    if (user.owned_avatar_ids.includes(avatar.id))
+        return res.status(400).json({ error: 'Already owned' });
+    if (user.coins < avatar.price)
+        return res.status(400).json({ error: 'Not enough coins' });
+    const newCoins = db_1.db.deductCoins(userId, avatar.price);
+    db_1.db.grantAvatar(userId, avatar.id);
+    return res.json({ coins: newCoins });
+});
+router.post('/equip', auth_1.requireAuth, (req, res) => {
+    const { userId } = req.user;
+    const { avatarId } = req.body ?? {};
+    const avatar = exports.AVATARS.find(a => a.id === Number(avatarId));
+    if (!avatar)
+        return res.status(404).json({ error: 'Avatar not found' });
+    const user = db_1.db.getUserById(userId);
+    if (!user)
+        return res.status(404).json({ error: 'User not found' });
+    if (!user.owned_avatar_ids.includes(avatar.id))
+        return res.status(403).json({ error: 'Not owned' });
+    db_1.db.setEquippedAvatar(userId, avatar.id);
+    return res.json({ equippedAvatarId: avatar.id });
+});
+exports.default = router;

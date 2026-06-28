@@ -16,17 +16,58 @@ interface User {
   created_at: string;
 }
 
+export interface DailyCard {
+  word: string;
+  type: 'agent' | 'neutral' | 'avoid';
+}
+
+export interface DailyClue {
+  word: string;
+  number: number;
+}
+
+export interface DailyBoard {
+  id: number;
+  date: string; // YYYY-MM-DD
+  cards: DailyCard[]; // exactly 12
+  clues: DailyClue[]; // max 4
+  createdAt: string;
+}
+
+export interface DailyResult {
+  id: number;
+  date: string;
+  userId: number;
+  username: string;
+  equippedAvatarId: number;
+  solved: boolean;
+  totalGuesses: number;
+  guessHistory: ('agent' | 'neutral' | 'avoid')[][];
+  completedAt: string;
+}
+
 interface DbData {
   users: User[];
   nextUserId: number;
+  dailyBoards: DailyBoard[];
+  nextDailyBoardId: number;
+  dailyResults: DailyResult[];
+  nextDailyResultId: number;
 }
 
+const DB_DEFAULTS: DbData = {
+  users: [], nextUserId: 1,
+  dailyBoards: [], nextDailyBoardId: 1,
+  dailyResults: [], nextDailyResultId: 1,
+};
+
 function readDb(): DbData {
-  if (!fs.existsSync(DB_PATH)) return { users: [], nextUserId: 1 };
+  if (!fs.existsSync(DB_PATH)) return { ...DB_DEFAULTS };
   try {
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8')) as DbData;
+    const parsed = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8')) as Partial<DbData>;
+    return { ...DB_DEFAULTS, ...parsed };
   } catch {
-    return { users: [], nextUserId: 1 };
+    return { ...DB_DEFAULTS };
   }
 }
 
@@ -95,5 +136,90 @@ export const db = {
     if (!user) throw new Error('User not found');
     user.equipped_avatar_id = avatarId;
     writeDb(data);
+  },
+
+  // ── Daily boards ────────────────────────────────────────────────────────────
+  getDailyBoards(): DailyBoard[] {
+    return readDb().dailyBoards;
+  },
+
+  getDailyBoardByDate(date: string): DailyBoard | undefined {
+    return readDb().dailyBoards.find(b => b.date === date);
+  },
+
+  getDailyBoardById(id: number): DailyBoard | undefined {
+    return readDb().dailyBoards.find(b => b.id === id);
+  },
+
+  createDailyBoard(date: string, cards: DailyCard[], clues: DailyClue[]): DailyBoard {
+    const data = readDb();
+    const board: DailyBoard = {
+      id: data.nextDailyBoardId++,
+      date,
+      cards,
+      clues,
+      createdAt: new Date().toISOString(),
+    };
+    data.dailyBoards.push(board);
+    writeDb(data);
+    return board;
+  },
+
+  updateDailyBoard(id: number, date: string, cards: DailyCard[], clues: DailyClue[]): DailyBoard | undefined {
+    const data = readDb();
+    const board = data.dailyBoards.find(b => b.id === id);
+    if (!board) return undefined;
+    board.date = date;
+    board.cards = cards;
+    board.clues = clues;
+    writeDb(data);
+    return board;
+  },
+
+  deleteDailyBoard(id: number): boolean {
+    const data = readDb();
+    const idx = data.dailyBoards.findIndex(b => b.id === id);
+    if (idx === -1) return false;
+    data.dailyBoards.splice(idx, 1);
+    writeDb(data);
+    return true;
+  },
+
+  // ── Daily results ────────────────────────────────────────────────────────────
+  getDailyResult(userId: number, date: string): DailyResult | undefined {
+    return readDb().dailyResults.find(r => r.userId === userId && r.date === date);
+  },
+
+  getDailyLeaderboard(date: string): DailyResult[] {
+    const results = readDb().dailyResults.filter(r => r.date === date);
+    return results.sort((a, b) => {
+      // Winners first, then losers
+      if (a.solved !== b.solved) return a.solved ? -1 : 1;
+      // Among winners: fewest guesses first, then earliest completion
+      if (a.totalGuesses !== b.totalGuesses) return a.totalGuesses - b.totalGuesses;
+      return a.completedAt < b.completedAt ? -1 : 1;
+    });
+  },
+
+  getDailyResultByUsername(username: string, date: string): DailyResult | undefined {
+    return readDb().dailyResults.find(
+      r => r.username.toLowerCase() === username.toLowerCase() && r.date === date
+    );
+  },
+
+  saveDailyResult(result: Omit<DailyResult, 'id'>): DailyResult {
+    const data = readDb();
+    const r: DailyResult = { id: data.nextDailyResultId++, ...result };
+    data.dailyResults.push(r);
+    writeDb(data);
+    return r;
+  },
+
+  clearDailyResults(date: string): number {
+    const data = readDb();
+    const before = data.dailyResults.length;
+    data.dailyResults = data.dailyResults.filter(r => r.date !== date);
+    writeDb(data);
+    return before - data.dailyResults.length;
   },
 };

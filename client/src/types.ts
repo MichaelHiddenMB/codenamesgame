@@ -25,6 +25,14 @@ export interface Clue {
   team: Team;
 }
 
+export interface ClueHistoryEntry {
+  word: string;
+  word2?: string;
+  number: number;
+  team: Team;
+  round: number;
+}
+
 export interface Player {
   userId: number;
   username: string;
@@ -51,6 +59,7 @@ export interface LobbyState {
 
 export interface GameState {
   roomCode: string;
+  mode: GameMode;
   board: Card[];
   currentTurn: Team;
   phase: GamePhase;
@@ -64,6 +73,7 @@ export interface GameState {
   avoidPenaltyTeam: Team | null;
   powerUpsEnabled: boolean;
   doubleClueTeam: Team | null;
+  clueHistory: ClueHistoryEntry[];
 }
 
 export interface AvatarItem {
